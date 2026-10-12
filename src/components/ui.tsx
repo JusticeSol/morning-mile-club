@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { RunStatus } from "@/lib/types";
 
 // Shared mobile-first page frame: navy header band, content card below.
 export function Screen({ eyebrow, title, children }: { eyebrow?: string; title: string; children: ReactNode }) {
@@ -34,4 +35,13 @@ export function Message({ tone, children }: { tone: "error" | "info"; children: 
       {children}
     </p>
   );
+}
+
+export function StatusPill({ status }: { status: RunStatus }) {
+  const styles = {
+    scheduled: "bg-sunrise/15 text-sunrise-ink",
+    completed: "bg-teal/15 text-teal",
+    cancelled: "bg-navy/10 text-navy/60",
+  }[status];
+  return <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold uppercase ${styles}`}>{status}</span>;
 }

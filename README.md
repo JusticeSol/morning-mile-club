@@ -21,17 +21,23 @@ Make yourself an admin after signing up once:
 update profiles set role = 'admin' where id = (select id from auth.users where email = 'you@example.com');
 ```
 
-## Testing QR check-in
+## Run day (admins)
 
-Create a run and get its check-in link (the admin screen will do this later):
+1. **Admin → New run** (defaults to the coming Saturday, 12 km). Each run gets its own QR code.
+2. At the meetup, open the run and tap **Show QR code**. Members scan it with their phone camera
+   and tap "I'm here". The screen stays awake and the count updates every 10 seconds.
+3. **Tick-off list:** tap anyone who can't scan (dead phone, no data). QR scans show up there too.
+4. After the run, tap **Mark completed**. Streaks and badges only count completed runs, so this
+   is what awards them. Rained off? **Cancel run**; it won't break anyone's streak.
 
-```sql
-insert into runs (run_date, title) values (current_date, 'Test run') returning id;
-select code from run_checkin_codes where run_id = '<id>';
-```
+Members log km from the home page or the check-in screen, but only for a run they're checked
+in to (scanned or ticked).
 
-Open `/checkin/<id>?code=<code>`. Check-in is only open 06:00–08:45 Lagos time on the run
-date. To test outside that window, widen it:
+Set `NEXT_PUBLIC_SITE_URL` in production so the QR code points at the live site.
+
+## Testing check-in outside Saturday morning
+
+Check-in is only open 06:00–08:45 Lagos time on the run date. To test at another time, widen it:
 
 ```sql
 update runs set checkin_opens_at = now() - interval '1 hour',

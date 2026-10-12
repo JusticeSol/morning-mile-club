@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { awardBadges } from "@/lib/badges";
 import type { CheckIn } from "@/lib/types";
 
 export type CheckInState =
@@ -38,18 +39,7 @@ export async function checkIn(runId: string, code: string): Promise<CheckInState
     return { status: "error", message: message ?? "Something went wrong. Please try again." };
   }
 
-  // Badges only count completed runs, so most land once an admin closes the
-  // run; awarding here still catches anything already reached.
-  const { data: earned } = await supabase.rpc("award_milestones", {
-    p_member_id: user.id,
-    p_run_id: runId,
-  });
-  let badges: string[] = [];
-  if (earned?.length) {
-    const ids = (earned as { milestone_id: string }[]).map((m) => m.milestone_id);
-    const { data: rows } = await supabase.from("milestones").select("name").in("id", ids);
-    badges = (rows ?? []).map((r) => r.name as string);
-  }
+  const badges = await awardBadges(supabase, user.id, runId);
 
   return { status: "done", checkedInAt: data.checked_in_at, badges };
 }

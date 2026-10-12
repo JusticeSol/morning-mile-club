@@ -34,7 +34,9 @@ Later: route map page, photo wall, share cards, monthly club total.
   - Fonts: Barlow Condensed (headings) and Barlow (body). Mobile-first, bottom nav with Home / Board / Profile.
 
 ## Status
-Done: Next.js 16 scaffold (`cacheComponents` on, so request-time reads go inside `<Suspense>`; middleware is `src/proxy.ts`), Supabase auth (email/phone OTP + magic link via `/auth/callback`), onboarding (creates the `profiles` row), and QR check-in at `src/app/checkin/[runId]`.
+Done: Next.js 16 scaffold (`cacheComponents` on, so request-time reads go inside `<Suspense>`; middleware is `src/proxy.ts`), Supabase auth (email/phone OTP + magic link via `/auth/callback`), onboarding (creates the `profiles` row), QR check-in at `src/app/checkin/[runId]`, km logging at `src/app/runs/[runId]/log`, and admin at `src/app/admin` (create runs, full-screen QR, tick-off list, complete/cancel).
+- Badges are awarded when an admin marks a run completed (`setRunStatus`), since stats only count completed runs.
+- RLS: members can only log km for runs they're checked in to.
 
 ## Next step
-Build the km logging flow (`run_logs`), then the admin screen (create runs, show the QR code).
+Leaderboard (Distance / Attendance / Streaks), profile page with badges, bottom nav, then announcements and the WhatsApp recap.

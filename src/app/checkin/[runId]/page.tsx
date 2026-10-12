@@ -3,10 +3,9 @@ import { notFound } from "next/navigation";
 import { Card, Message, Screen } from "@/components/ui";
 import { requireMember } from "@/lib/auth";
 import { formatClockTime, formatRunDate, formatTime, memberName } from "@/lib/format";
-import type { CheckIn, Run } from "@/lib/types";
+import { RUN_COLUMNS, type CheckIn, type Run } from "@/lib/types";
+import { isUuid } from "@/lib/uuid";
 import { CheckInButton, CheckedIn } from "./check-in-button";
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // The QR shown at the meetup links here: /checkin/<run_id>?code=<code>.
 // Viewing the page never checks anyone in. That needs a tap, so WhatsApp
@@ -27,7 +26,7 @@ async function CheckInBody({ params, searchParams }: PageProps<"/checkin/[runId]
   const { runId } = await params;
   const { code: rawCode } = await searchParams;
   const code = typeof rawCode === "string" ? rawCode : "";
-  if (!UUID.test(runId)) notFound();
+  if (!isUuid(runId)) notFound();
 
   const here = `/checkin/${runId}${code ? `?code=${encodeURIComponent(code)}` : ""}`;
   const { supabase, user, profile } = await requireMember(here);
@@ -35,7 +34,7 @@ async function CheckInBody({ params, searchParams }: PageProps<"/checkin/[runId]
   const [{ data: run }, { data: existing }] = await Promise.all([
     supabase
       .from("runs")
-      .select("id, run_date, title, default_km, start_time, status, checkin_opens_at, checkin_closes_at")
+      .select(RUN_COLUMNS)
       .eq("id", runId)
       .maybeSingle<Run>(),
     supabase
@@ -87,7 +86,7 @@ function CheckInStatus({
   code: string;
   name: string;
 }) {
-  if (existing) return <CheckedIn checkedInAt={existing.checked_in_at} />;
+  if (existing) return <CheckedIn runId={run.id} checkedInAt={existing.checked_in_at} />;
 
   if (run.status === "cancelled") {
     return <Message tone="info">This run was cancelled. See you next Saturday!</Message>;

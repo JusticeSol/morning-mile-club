@@ -31,3 +31,13 @@ export type CheckIn = {
   member_id: string;
   checked_in_at: string;
 };
+
+export type RunLog = {
+  run_id: string;
+  member_id: string;
+  distance_km: number;
+  duration_seconds: number | null;
+};
+
+export const RUN_COLUMNS =
+  "id, run_date, title, default_km, start_time, status, checkin_opens_at, checkin_closes_at";

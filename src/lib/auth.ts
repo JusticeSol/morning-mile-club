@@ -1,5 +1,5 @@
 import "server-only";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 
@@ -35,4 +35,12 @@ export async function requireMember(next: string) {
   }
 
   return { supabase, user, profile };
+}
+
+// Same as requireMember, but non-admins get a 404 so the admin pages
+// don't advertise themselves. RLS still guards every admin write.
+export async function requireAdmin(next: string) {
+  const member = await requireMember(next);
+  if (member.profile.role !== "admin") notFound();
+  return member;
 }

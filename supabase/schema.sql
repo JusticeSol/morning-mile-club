@@ -365,9 +365,13 @@ create policy "admin milestones" on milestones for all to authenticated using (i
 create policy "read check_ins" on check_ins for select to authenticated using (true);
 create policy "admin check_ins" on check_ins for all to authenticated using (is_admin()) with check (is_admin());
 
--- Run logs: everyone reads (leaderboard); members manage their own.
+-- Run logs: everyone reads (leaderboard); members manage their own, and
+-- can only log km for a run they checked in to (QR or ticked by an admin).
 create policy "read run_logs" on run_logs for select to authenticated using (true);
-create policy "own run_logs insert" on run_logs for insert to authenticated with check (member_id = auth.uid());
+create policy "own run_logs insert" on run_logs for insert to authenticated
+  with check (member_id = auth.uid()
+              and exists (select 1 from check_ins c
+                           where c.run_id = run_logs.run_id and c.member_id = auth.uid()));
 create policy "own run_logs update" on run_logs for update to authenticated using (member_id = auth.uid()) with check (member_id = auth.uid());
 create policy "own run_logs delete" on run_logs for delete to authenticated using (member_id = auth.uid());
 
