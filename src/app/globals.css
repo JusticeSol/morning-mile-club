@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-navy: #101820;
+  --color-sunrise: #f97316; /* fills */
+  --color-sunrise-ink: #c2410c; /* text on light backgrounds */
+  --color-teal: #0f766e;
+  --color-paper: #f3f4ef;
+  --font-sans: var(--font-barlow);
+  --font-display: var(--font-barlow-condensed);
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-navy);
+}
