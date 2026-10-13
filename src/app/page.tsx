@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { buttonClass, Card, Screen } from "@/components/ui";
+import { RouteCard } from "@/components/route-card";
 import { requireMember } from "@/lib/auth";
 import { formatClockTime, formatDuration, formatRunDate, formatTime, lagosToday, memberName } from "@/lib/format";
 import { RUN_COLUMNS, type Run } from "@/lib/types";
@@ -81,6 +82,8 @@ async function HomeBody() {
           <p className="text-navy/70">No run scheduled yet. Watch the WhatsApp group.</p>
         )}
       </Card>
+
+      <RouteCard startTime={(nextRun ?? latestRun)?.start_time} />
 
       {profile.role === "admin" && (
         <Link href="/admin" className="block text-sm font-medium text-sunrise-ink underline">

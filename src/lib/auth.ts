@@ -11,6 +11,14 @@ export function safeNext(next: string | null | undefined, fallback = "/") {
   return next;
 }
 
+// Marks runs completed once check-in has closed, so streaks and badges
+// count even when no admin taps "Mark completed". Usually updates nothing.
+// Never blocks the page: a failure is logged and ignored.
+async function completePastRuns(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const { error } = await supabase.rpc("complete_past_runs");
+  if (error) console.error("complete_past_runs", error.message);
+}
+
 // Returns the signed-in member and their profile. Sends them to /login if
 // signed out, or to /onboarding if they haven't created a profile yet.
 // `next` is where to come back to afterwards.
@@ -24,11 +32,14 @@ export async function requireMember(next: string) {
     redirect(`/login?next=${encodeURIComponent(next)}`);
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, full_name, display_name, avatar_url, pace_group, role")
-    .eq("id", user.id)
-    .maybeSingle<Profile>();
+  const [{ data: profile }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, full_name, display_name, avatar_url, pace_group, role")
+      .eq("id", user.id)
+      .maybeSingle<Profile>(),
+    completePastRuns(supabase),
+  ]);
 
   if (!profile) {
     redirect(`/onboarding?next=${encodeURIComponent(next)}`);

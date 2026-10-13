@@ -99,7 +99,7 @@ async function LeaderboardBody({ searchParams }: Pick<PageProps<"/leaderboard">,
         <p className="text-center text-sm text-navy/60">You&apos;re not on this board yet. See you Saturday!</p>
       )}
       <p className="text-center text-xs text-navy/50">
-        Counts check-ins and km logged on this site. Saturdays count once the run is marked completed.
+        Counts check-ins and km logged on this site. A Saturday counts once it&apos;s completed, automatically after check-in closes at 8:45.
       </p>
     </div>
   );

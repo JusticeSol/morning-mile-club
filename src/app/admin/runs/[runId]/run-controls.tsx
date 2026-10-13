@@ -15,12 +15,29 @@ export function RunControls({ runId, status }: { runId: string; status: RunStatu
     startTransition(() => setRunStatus(runId, next));
   };
 
-  if (status !== "scheduled") {
+  // Completed runs can be cancelled directly: reopening one after check-in
+  // closes would just auto-complete again on the next page load.
+  if (status === "completed") {
     return (
       <button
         type="button"
         disabled={pending}
-        onClick={() => change("scheduled", "Reopen this run? It will stop counting towards streaks until completed again.")}
+        onClick={() => change("cancelled", "Cancel this run? It won't count for anyone and won't break streaks.")}
+        className={secondary}
+      >
+        Cancel run
+      </button>
+    );
+  }
+
+  if (status === "cancelled") {
+    return (
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() =>
+          change("scheduled", "Reopen this run? If people checked in and check-in has closed, it will count as completed.")
+        }
         className={secondary}
       >
         Reopen run
@@ -34,7 +51,7 @@ export function RunControls({ runId, status }: { runId: string; status: RunStatu
         type="button"
         disabled={pending}
         onClick={() =>
-          change("completed", "Mark this run completed? Streaks and badges will update for everyone who checked in.")
+          change("completed", "Mark this run completed now? (It also happens automatically after check-in closes.) Streaks and badges will update for everyone who checked in.")
         }
         className={`${secondary} border-teal text-teal`}
       >

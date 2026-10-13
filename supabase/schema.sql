@@ -15,7 +15,6 @@ create type member_role   as enum ('member', 'admin');
 create type pace_group    as enum ('easy', 'steady', 'fast');
 create type run_status    as enum ('scheduled', 'completed', 'cancelled');
 create type checkin_method as enum ('qr', 'admin');
-create type milestone_kind as enum ('streak', 'attendance', 'distance');
 
 -- ---------- Members --------------------------------------------------
 create table profiles (
@@ -140,7 +139,7 @@ create table milestones (
   code        text not null unique,         -- 'streak_4', 'att_25', 'km_100'
   name        text not null,
   description text,
-  kind        milestone_kind not null,
+  kind        text not null check (kind in ('streak', 'attendance', 'distance', 'special')),
   threshold   numeric not null
 );
 
@@ -152,16 +151,22 @@ create table member_milestones (
   primary key (member_id, milestone_id)
 );
 
+-- Attendance badges are named after the Saturday route. 'special' badges
+-- have their own rules in award_milestones() (threshold unused).
 insert into milestones (code, name, description, kind, threshold) values
-  ('att_1',     'First Mile',        'Your first Saturday with the club',  'attendance', 1),
-  ('att_10',    'Regular',           '10 Saturdays attended',              'attendance', 10),
-  ('att_25',    'Quarter Century',   '25 Saturdays attended',              'attendance', 25),
-  ('att_52',    'Full Year',         '52 Saturdays attended',              'attendance', 52),
-  ('streak_4',  'Month Strong',      '4 Saturdays in a row',               'streak',     4),
-  ('streak_8',  'Locked In',         '8 Saturdays in a row',               'streak',     8),
-  ('streak_12', 'Unbreakable',       '12 Saturdays in a row',              'streak',     12),
-  ('km_100',    '100 km Club',       '100 km logged with the club',        'distance',   100),
-  ('km_500',    '500 km Club',       '500 km logged with the club',        'distance',   500);
+  ('att_1',        'Morning Mile Welcome',     'Your first Saturday with the club',            'attendance', 1),
+  ('att_4',        'Harvesters Regular',       '4 Saturdays with the club',                    'attendance', 4),
+  ('att_7',        'Anthony Stopover Veteran', '7 Saturdays with the club',                    'attendance', 7),
+  ('att_10',       'Maryland Mall Legend',     '10 Saturdays with the club',                   'attendance', 10),
+  ('att_25',       'Quarter Century',          '25 Saturdays with the club',                   'attendance', 25),
+  ('att_52',       'Full Year',                '52 Saturdays with the club',                   'attendance', 52),
+  ('streak_4',     'Month Strong',             '4 Saturdays in a row',                         'streak',     4),
+  ('streak_8',     'Locked In',                '8 Saturdays in a row',                         'streak',     8),
+  ('streak_12',    'Unbreakable',              '12 Saturdays in a row',                        'streak',     12),
+  ('km_100',       '100 km Club',              '100 km logged with the club',                  'distance',   100),
+  ('km_500',       '500 km Club',              '500 km logged with the club',                  'distance',   500),
+  ('wake_up_crew', 'Wake-Up Crew',             'One of the first 5 to check in at the meetup', 'special',    1),
+  ('comeback',     'Comeback Kid',             'Back after missing 3 or more Saturdays',       'special',    1);
 
 -- ---------- Announcements & photos -----------------------------------
 create table announcements (
@@ -300,21 +305,80 @@ begin
   return v_row;
 end $$;
 
--- Award any milestones a member has newly reached. Call after check-in / km log.
+-- Award any milestones a member has newly reached. Called after check-in,
+-- km log, admin tick-off, and when a run is completed (manually or by
+-- complete_past_runs()). Only completed runs count.
 create or replace function award_milestones(p_member_id uuid, p_run_id uuid default null)
 returns setof member_milestones
 language plpgsql security definer set search_path = public as $$
 begin
   return query
+  with completed as (
+    select id, row_number() over (order by run_date) as run_no
+    from runs
+    where status = 'completed'
+  ),
+  attended as (
+    select r.run_no
+    from check_ins c
+    join completed r on r.id = c.run_id
+    where c.member_id = p_member_id
+  ),
+  flags as (
+    select
+      -- Comeback Kid: missed 3+ completed Saturdays, then came back.
+      exists (select 1
+                from (select run_no - lag(run_no) over (order by run_no) as gap from attended) g
+               where g.gap > 3) as comeback,
+      -- Wake-Up Crew: among the first 5 QR check-ins at a completed run.
+      exists (select 1
+                from (select c.member_id,
+                             row_number() over (partition by c.run_id order by c.checked_in_at) as pos
+                        from check_ins c
+                        join completed r on r.id = c.run_id
+                       where c.method = 'qr') q
+               where q.member_id = p_member_id and q.pos <= 5) as wake_up
+  )
   insert into member_milestones (member_id, milestone_id, run_id)
   select p_member_id, m.id, p_run_id
   from milestones m
   join member_stats s on s.member_id = p_member_id
+  cross join flags f
   where (m.kind = 'attendance' and s.saturdays_attended >= m.threshold)
      or (m.kind = 'streak'     and s.current_streak     >= m.threshold)
      or (m.kind = 'distance'   and s.total_km           >= m.threshold)
+     or (m.code = 'wake_up_crew' and f.wake_up)
+     or (m.code = 'comeback'     and f.comeback)
   on conflict do nothing
   returning *;
+end $$;
+
+-- Marks runs completed once their check-in window has closed, so streaks
+-- and badges count even if no admin taps "Mark completed". Runs nobody
+-- checked in to are left alone (an admin can cancel them). The app calls
+-- this on page loads; it's a no-op most of the time.
+create or replace function complete_past_runs()
+returns integer
+language plpgsql security definer set search_path = public as $$
+declare
+  v_run_id uuid;
+  v_member_id uuid;
+  v_count integer := 0;
+begin
+  for v_run_id in
+    update runs r
+       set status = 'completed'
+     where r.status = 'scheduled'
+       and r.checkin_closes_at < now()
+       and exists (select 1 from check_ins c where c.run_id = r.id)
+    returning r.id
+  loop
+    v_count := v_count + 1;
+    for v_member_id in select member_id from check_ins where run_id = v_run_id loop
+      perform award_milestones(v_member_id, v_run_id);
+    end loop;
+  end loop;
+  return v_count;
 end $$;
 
 -- =====================================================================

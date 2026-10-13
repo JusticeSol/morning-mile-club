@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { Avatar, Card, Message, Screen } from "@/components/ui";
 import { requireMember } from "@/lib/auth";
+import { badgeIcon, sortBadges } from "@/lib/badge-meta";
 import { formatDuration, formatRunDate, memberName } from "@/lib/format";
 import { STATS_COLUMNS, type MemberStats, type Milestone, type RunStatus } from "@/lib/types";
 import { signOut } from "../actions";
@@ -56,8 +57,9 @@ async function ProfileBody({ searchParams }: Pick<PageProps<"/profile">, "search
     bestStreak: Number(statsRow?.longest_streak ?? 0),
   };
   const earnedIds = new Set((earned ?? []).map((e) => e.milestone_id as string));
+  // Special badges (Wake-Up Crew, Comeback Kid) have no progress bar.
   const progressFor = (m: Milestone) =>
-    m.kind === "attendance" ? stats.saturdays : m.kind === "streak" ? stats.streak : stats.km;
+    m.kind === "attendance" ? stats.saturdays : m.kind === "streak" ? stats.streak : m.kind === "distance" ? stats.km : null;
 
   return (
     <div className="space-y-4">
@@ -99,9 +101,10 @@ async function ProfileBody({ searchParams }: Pick<PageProps<"/profile">, "search
       <Card>
         <h2 className="mb-3 font-display text-xl font-bold uppercase">Badges</h2>
         <ul className="grid grid-cols-3 gap-3">
-          {((milestones ?? []) as Milestone[]).map((m) => {
+          {sortBadges((milestones ?? []) as Milestone[]).map((m) => {
             const has = earnedIds.has(m.id);
-            const pct = Math.min(100, Math.round((progressFor(m) / Number(m.threshold)) * 100));
+            const progress = progressFor(m);
+            const pct = progress == null ? null : Math.min(100, Math.round((progress / Number(m.threshold)) * 100));
             return (
               <li
                 key={m.id}
@@ -114,11 +117,13 @@ async function ProfileBody({ searchParams }: Pick<PageProps<"/profile">, "search
                   }`}
                   aria-hidden
                 >
-                  {m.kind === "streak" ? "🔥" : m.kind === "distance" ? "🏃" : "🌅"}
+                  {badgeIcon(m)}
                 </span>
                 <span className={`mt-1 text-xs font-semibold leading-tight ${has ? "" : "text-navy/50"}`}>{m.name}</span>
                 {has ? (
                   <span className="sr-only">Earned</span>
+                ) : pct == null ? (
+                  <span className="mt-1 text-[10px] leading-tight text-navy/50">{m.description}</span>
                 ) : (
                   <span className="mt-1 h-1 w-full overflow-hidden rounded-full bg-navy/10" aria-label={`${pct}% there`}>
                     <span className="block h-full bg-teal" style={{ width: `${pct}%` }} />

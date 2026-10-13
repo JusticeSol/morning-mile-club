@@ -60,7 +60,7 @@ export type Milestone = {
   code: string;
   name: string;
   description: string | null;
-  kind: "streak" | "attendance" | "distance";
+  kind: "streak" | "attendance" | "distance" | "special";
   threshold: number;
 };
 

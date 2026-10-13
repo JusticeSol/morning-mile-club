@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { AutoRefresh } from "@/components/auto-refresh";
@@ -8,6 +7,7 @@ import { Message } from "@/components/ui";
 import { requireAdmin } from "@/lib/auth";
 import { formatRunDate, formatTime } from "@/lib/format";
 import { RUN_COLUMNS, type Run } from "@/lib/types";
+import { siteUrl } from "@/lib/site";
 import { isUuid } from "@/lib/uuid";
 import { KeepAwake } from "./keep-awake";
 
@@ -74,12 +74,3 @@ async function QrBody({ params }: Pick<PageProps<"/admin/runs/[runId]/qr">, "par
   );
 }
 
-// The QR must point at the public site, not localhost behind a proxy.
-// Set NEXT_PUBLIC_SITE_URL in production; otherwise use the request's host.
-async function siteUrl() {
-  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  const proto = h.get("x-forwarded-proto") ?? (host?.startsWith("localhost") ? "http" : "https");
-  return `${proto}://${host}`;
-}

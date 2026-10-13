@@ -85,6 +85,12 @@ async function AdminRunBody({ params }: Pick<PageProps<"/admin/runs/[runId]">, "
           </Link>
         )}
         <RunControls runId={run.id} status={run.status} />
+        <Link
+          href={`/admin/runs/${run.id}/whatsapp`}
+          className="mt-2 block rounded-xl bg-[#25D366]/10 px-4 py-3 text-center font-medium text-[#128C7E]"
+        >
+          WhatsApp reminder &amp; recap
+        </Link>
       </Card>
 
       <Card>

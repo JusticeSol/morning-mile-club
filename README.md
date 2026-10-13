@@ -21,14 +21,21 @@ Make yourself an admin after signing up once:
 update profiles set role = 'admin' where id = (select id from auth.users where email = 'you@example.com');
 ```
 
+## Database updates
+
+`supabase/schema.sql` is always the full, current schema (use it for a fresh project).
+If your database was set up from an older version, run the files in `supabase/migrations/`
+that are newer than your setup, in date order, in the Supabase SQL Editor. Each is safe to re-run.
+
 ## Run day (admins)
 
 1. **Admin → New run** (defaults to the coming Saturday, 12 km). Each run gets its own QR code.
 2. At the meetup, open the run and tap **Show QR code**. Members scan it with their phone camera
    and tap "I'm here". The screen stays awake and the count updates every 10 seconds.
 3. **Tick-off list:** tap anyone who can't scan (dead phone, no data). QR scans show up there too.
-4. After the run, tap **Mark completed**. Streaks and badges only count completed runs, so this
-   is what awards them. Rained off? **Cancel run**; it won't break anyone's streak.
+4. Runs complete automatically once check-in closes (8:45), which awards streaks and badges.
+   **Mark completed** does it early. Rained off? **Cancel run**; it won't break anyone's streak.
+5. **WhatsApp reminder & recap** (on the run page): ready-made messages to edit, copy or share.
 
 Members log km from the home page or the check-in screen, but only for a run they're checked
 in to (scanned or ticked).
