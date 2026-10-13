@@ -41,7 +41,6 @@ export function LogForm({
   return (
     <div className="space-y-5">
       <form action={action} className="space-y-6">
-
         <div className="flex items-center justify-between gap-3">
           <StepButton label={`Minus ${STEP} km`} onClick={() => nudge(-STEP)} disabled={valid && km <= MIN}>
             −
@@ -50,7 +49,7 @@ export function LogForm({
             <input
               name="distance_km"
               value={text}
-              onChange={(e) => setText(e.target.value.replace(/[^d.,]/g, "").slice(0, 5))}
+              onChange={(e) => setText(e.target.value.replace(/[^\d.,]/g, "").slice(0, 5))}
               onBlur={() => valid && setText(km.toFixed(1))}
               onFocus={(e) => e.target.select()}
               inputMode="decimal"
@@ -59,9 +58,7 @@ export function LogForm({
               aria-invalid={!valid}
               className="w-full rounded-xl border-2 border-dashed border-navy/20 bg-transparent py-1 text-center font-display text-7xl font-bold leading-none outline-none focus:border-teal"
             />
-            <span className="block text-sm font-medium uppercase tracking-widest text-navy/60">
-              km · tap to type
-            </span>
+            <span className="block text-sm font-medium uppercase tracking-widest text-navy/60">km</span>
           </label>
           <StepButton label={`Plus ${STEP} km`} onClick={() => nudge(STEP)} disabled={valid && km >= MAX}>
             +
