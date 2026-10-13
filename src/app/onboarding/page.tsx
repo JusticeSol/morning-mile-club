@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { Card, Screen } from "@/components/ui";
 import { safeNext } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { OnboardingForm } from "./onboarding-form";
+import { ProfileForm } from "@/components/profile-form";
+import { createProfile } from "./actions";
 
 export default function OnboardingPage({ searchParams }: PageProps<"/onboarding">) {
   return (
@@ -30,5 +31,5 @@ async function OnboardingBody({ searchParams }: Pick<PageProps<"/onboarding">, "
   const { data: existing } = await supabase.from("profiles").select("id").eq("id", user.id).maybeSingle();
   if (existing) redirect(nextPath);
 
-  return <OnboardingForm next={nextPath} />;
+  return <ProfileForm action={createProfile} next={nextPath} submitLabel="Join the club" />;
 }

@@ -4,11 +4,10 @@ import { buttonClass, Card, Screen } from "@/components/ui";
 import { requireMember } from "@/lib/auth";
 import { formatClockTime, formatRunDate, lagosToday, memberName } from "@/lib/format";
 import { RUN_COLUMNS, type Run } from "@/lib/types";
-import { signOut } from "./actions";
 
 export default function Home() {
   return (
-    <Screen eyebrow="Morning Mile Club" title="Every Saturday">
+    <Screen eyebrow="Morning Mile Club" title="Every Saturday" nav="home">
       <Suspense fallback={<Card><p className="text-navy/60">Loading…</p></Card>}>
         <HomeBody />
       </Suspense>
@@ -84,18 +83,11 @@ async function HomeBody() {
         )}
       </Card>
 
-      <div className="flex items-center justify-between text-sm">
-        {profile.role === "admin" ? (
-          <Link href="/admin" className="font-medium text-sunrise-ink underline">
-            Admin
-          </Link>
-        ) : (
-          <span />
-        )}
-        <form action={signOut}>
-          <button className="text-navy/60 underline">Log out</button>
-        </form>
-      </div>
+      {profile.role === "admin" && (
+        <Link href="/admin" className="block text-sm font-medium text-sunrise-ink underline">
+          Admin: runs, QR code and tick-off list
+        </Link>
+      )}
     </div>
   );
 }

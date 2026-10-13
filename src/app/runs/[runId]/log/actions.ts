@@ -5,10 +5,7 @@ import { refresh } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { awardBadges } from "@/lib/badges";
 
-export type LogState =
-  | { status: "idle" }
-  | { status: "error"; message: string }
-  | { status: "saved"; badges: string[] };
+export type LogState = { status: "idle" } | { status: "error"; message: string };
 
 export async function saveLog(runId: string, _prev: LogState, formData: FormData): Promise<LogState> {
   const distance = Number(formData.get("distance_km"));
@@ -49,9 +46,9 @@ export async function saveLog(runId: string, _prev: LogState, formData: FormData
     return { status: "error", message: "Couldn't save your run. Please try again." };
   }
 
-  const badges = await awardBadges(supabase, user.id, runId);
-  refresh();
-  return { status: "saved", badges };
+  await awardBadges(supabase, user.id, runId);
+  // Land on the profile so members see the km added to their totals.
+  redirect(`/profile?saved=log&km=${Math.round(distance * 10) / 10}`);
 }
 
 export async function deleteLog(runId: string) {

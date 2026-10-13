@@ -23,16 +23,16 @@ function LoginSteps({ next, onRestart }: { next: string; onRestart: () => void }
         <input type="hidden" name="contact" value={sendState.contact} />
         <input type="hidden" name="next" value={next} />
         <p>
-          We sent a 6-digit code to <strong>{sendState.contact}</strong>.
+          We sent a login code to <strong>{sendState.contact}</strong>.
           {sendState.method === "email" && " You can also just tap the link in the email."}
         </p>
         <input
           name="token"
           inputMode="numeric"
           autoComplete="one-time-code"
-          placeholder="123456"
+          placeholder="Enter code"
           required
-          className={`${inputClass} text-center text-2xl tracking-[0.4em]`}
+          className={`${inputClass} text-center text-2xl tracking-[0.3em] placeholder:tracking-normal placeholder:text-base`}
         />
         {error && <Message tone="error">{error}</Message>}
         <button className={buttonClass} disabled={verifying}>

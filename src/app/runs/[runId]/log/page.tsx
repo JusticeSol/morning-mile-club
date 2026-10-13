@@ -2,14 +2,14 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { Card, Message, Screen } from "@/components/ui";
 import { requireMember } from "@/lib/auth";
-import { formatRunDate } from "@/lib/format";
+import { formatDuration, formatRunDate } from "@/lib/format";
 import { RUN_COLUMNS, type Run, type RunLog } from "@/lib/types";
 import { isUuid } from "@/lib/uuid";
 import { LogForm } from "./log-form";
 
 export default function LogPage({ params }: PageProps<"/runs/[runId]/log">) {
   return (
-    <Screen eyebrow="After the run" title="Log your km">
+    <Screen eyebrow="After the run" title="Log your km" nav>
       <Card>
         <Suspense fallback={<p className="text-navy/60">Loading…</p>}>
           <LogBody params={params} />
@@ -51,12 +51,20 @@ async function LogBody({ params }: Pick<PageProps<"/runs/[runId]/log">, "params"
           come back here.
         </Message>
       ) : (
-        <LogForm
+        <>
+          {log && (
+            <Message tone="info">
+              You logged <strong>{Number(log.distance_km).toFixed(1)} km</strong>
+              {log.duration_seconds ? ` in ${formatDuration(log.duration_seconds)}` : ""}. Change it below if you need to.
+            </Message>
+          )}
+          <LogForm
           runId={run.id}
           initialKm={Number(log?.distance_km ?? run.default_km)}
           initialSeconds={log?.duration_seconds ?? null}
           hasLog={!!log}
-        />
+          />
+        </>
       )}
     </div>
   );

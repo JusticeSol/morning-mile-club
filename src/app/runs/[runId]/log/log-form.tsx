@@ -79,17 +79,6 @@ export function LogForm({
         </fieldset>
 
         {state.status === "error" && <Message tone="error">{state.message}</Message>}
-        {state.status === "saved" && (
-          <Message tone="info">
-            Saved — {km.toFixed(1)} km logged.
-            {state.badges.length > 0 && (
-              <>
-                {" "}
-                New badge{state.badges.length > 1 ? "s" : ""}: <strong>{state.badges.join(", ")}</strong>
-              </>
-            )}
-          </Message>
-        )}
 
         <button className={buttonClass} disabled={pending}>
           {pending ? "Saving…" : hasLog ? "Update my run" : "Log my run"}

@@ -12,7 +12,7 @@ import { CheckInButton, CheckedIn } from "./check-in-button";
 // link previews and browser prefetches can't record attendance.
 export default function CheckInPage({ params, searchParams }: PageProps<"/checkin/[runId]">) {
   return (
-    <Screen eyebrow="Saturday check-in" title="Check in">
+    <Screen eyebrow="Saturday check-in" title="Check in" nav>
       <Card>
         <Suspense fallback={<p className="text-navy/60">Loading run…</p>}>
           <CheckInBody params={params} searchParams={searchParams} />

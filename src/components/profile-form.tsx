@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import { createProfile } from "./actions";
 import { buttonClass, inputClass, Message } from "@/components/ui";
+import type { PaceGroup } from "@/lib/types";
 
 const PACES = [
   { value: "easy", label: "Easy", hint: "Chatty pace" },
@@ -10,19 +10,38 @@ const PACES = [
   { value: "fast", label: "Fast", hint: "Up front" },
 ];
 
-export function OnboardingForm({ next }: { next: string }) {
-  const [state, action, pending] = useActionState(createProfile, {} as { error?: string });
+type ProfileAction = (prev: { error?: string }, formData: FormData) => Promise<{ error?: string }>;
+
+// Used by onboarding (create) and the profile edit page (update).
+export function ProfileForm({
+  action: serverAction,
+  next,
+  submitLabel,
+  defaults,
+}: {
+  action: ProfileAction;
+  next: string;
+  submitLabel: string;
+  defaults?: { full_name: string; display_name: string | null; pace_group: PaceGroup | null };
+}) {
+  const [state, action, pending] = useActionState(serverAction, {});
 
   return (
     <form action={action} className="space-y-5">
       <input type="hidden" name="next" value={next} />
       <label className="block space-y-1">
         <span className="font-medium">Full name</span>
-        <input name="full_name" autoComplete="name" required className={inputClass} />
+        <input name="full_name" autoComplete="name" required defaultValue={defaults?.full_name} className={inputClass} />
       </label>
       <label className="block space-y-1">
         <span className="font-medium">What should we call you?</span>
-        <input name="display_name" autoComplete="nickname" placeholder="Optional" className={inputClass} />
+        <input
+          name="display_name"
+          autoComplete="nickname"
+          placeholder="Optional"
+          defaultValue={defaults?.display_name ?? ""}
+          className={inputClass}
+        />
       </label>
       <fieldset className="space-y-2">
         <legend className="font-medium">Pace group</legend>
@@ -36,7 +55,7 @@ export function OnboardingForm({ next }: { next: string }) {
                 type="radio"
                 name="pace_group"
                 value={p.value}
-                defaultChecked={p.value === "steady"}
+                defaultChecked={p.value === (defaults?.pace_group ?? "steady")}
                 className="sr-only"
               />
               <span className="block font-display text-lg font-bold uppercase">{p.label}</span>
@@ -47,7 +66,7 @@ export function OnboardingForm({ next }: { next: string }) {
       </fieldset>
       {state.error && <Message tone="error">{state.error}</Message>}
       <button className={buttonClass} disabled={pending}>
-        {pending ? "Saving…" : "Join the club"}
+        {pending ? "Saving…" : submitLabel}
       </button>
     </form>
   );
