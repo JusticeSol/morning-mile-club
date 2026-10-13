@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { buttonClass, Card, Screen } from "@/components/ui";
 import { requireMember } from "@/lib/auth";
-import { formatClockTime, formatRunDate, lagosToday, memberName } from "@/lib/format";
+import { formatClockTime, formatDuration, formatRunDate, formatTime, lagosToday, memberName } from "@/lib/format";
 import { RUN_COLUMNS, type Run } from "@/lib/types";
 
 export default function Home() {
@@ -17,37 +17,39 @@ export default function Home() {
 
 async function HomeBody() {
   const { supabase, user, profile } = await requireMember("/");
-
   const today = lagosToday();
 
-  const [{ data: nextRun }, { data: lastCheckIn }] = await Promise.all([
+  // Latest run = today's or the most recent past one; next run = after today.
+  const [{ data: latestRun }, { data: nextRun }] = await Promise.all([
     supabase
       .from("runs")
       .select(RUN_COLUMNS)
-      .gte("run_date", today)
+      .lte("run_date", today)
+      .neq("status", "cancelled")
+      .order("run_date", { ascending: false })
+      .limit(1)
+      .maybeSingle<Run>(),
+    supabase
+      .from("runs")
+      .select(RUN_COLUMNS)
+      .gt("run_date", today)
       .neq("status", "cancelled")
       .order("run_date")
       .limit(1)
       .maybeSingle<Run>(),
-    supabase
-      .from("check_ins")
-      .select("run_id, runs(run_date, title)")
-      .eq("member_id", user.id)
-      .order("checked_in_at", { ascending: false })
-      .limit(1)
-      .maybeSingle<{ run_id: string; runs: { run_date: string; title: string | null } }>(),
   ]);
 
-  // Prompt for km if the member's latest check-in has no log yet.
-  let toLog: typeof lastCheckIn = null;
-  if (lastCheckIn) {
-    const { count } = await supabase
-      .from("run_logs")
-      .select("run_id", { count: "exact", head: true })
-      .eq("run_id", lastCheckIn.run_id)
-      .eq("member_id", user.id);
-    if (count === 0) toLog = lastCheckIn;
-  }
+  const [{ data: checkIn }, { data: log }] = latestRun
+    ? await Promise.all([
+        supabase.from("check_ins").select("id").eq("run_id", latestRun.id).eq("member_id", user.id).maybeSingle(),
+        supabase
+          .from("run_logs")
+          .select("distance_km, duration_seconds")
+          .eq("run_id", latestRun.id)
+          .eq("member_id", user.id)
+          .maybeSingle(),
+      ])
+    : [{ data: null }, { data: null }];
 
   return (
     <div className="space-y-4">
@@ -55,16 +57,13 @@ async function HomeBody() {
         Hi <strong>{memberName(profile)}</strong> 👋
       </p>
 
-      {toLog && (
-        <Card>
-          <p className="text-sm font-medium uppercase tracking-widest text-sunrise-ink">How far did you go?</p>
-          <p className="mb-4 text-navy/70">
-            {toLog.runs.title ?? "Saturday run"} · {formatRunDate(toLog.runs.run_date)}
-          </p>
-          <Link href={`/runs/${toLog.run_id}/log`} className={buttonClass}>
-            Log my km
-          </Link>
-        </Card>
+      {latestRun && (
+        <LatestRunCard
+          run={latestRun}
+          isToday={latestRun.run_date === today}
+          checkedIn={!!checkIn}
+          log={log as { distance_km: number; duration_seconds: number | null } | null}
+        />
       )}
 
       <Card>
@@ -76,7 +75,7 @@ async function HomeBody() {
               {formatRunDate(nextRun.run_date)} · meet {formatClockTime(nextRun.start_time)} · ~
               {nextRun.default_km} km
             </p>
-            <p className="mt-3 text-sm text-navy/60">Scan the QR code at the meetup to check in.</p>
+            <p className="mt-3 text-sm text-navy/60">On the day, tap Scan below to check in at the meetup.</p>
           </>
         ) : (
           <p className="text-navy/70">No run scheduled yet. Watch the WhatsApp group.</p>
@@ -89,5 +88,87 @@ async function HomeBody() {
         </Link>
       )}
     </div>
+  );
+}
+
+function checkInNotClosed(run: Run) {
+  return Date.parse(run.checkin_closes_at) > Date.now();
+}
+
+// One card that always tells the member what to do about the latest run:
+// scan in, log km, edit km, or how to get ticked off.
+function LatestRunCard({
+  run,
+  isToday,
+  checkedIn,
+  log,
+}: {
+  run: Run;
+  isToday: boolean;
+  checkedIn: boolean;
+  log: { distance_km: number; duration_seconds: number | null } | null;
+}) {
+  const heading = (
+    <p className="mb-3 text-navy/70">
+      <span className="block font-display text-2xl font-bold uppercase text-navy">{run.title ?? "Saturday run"}</span>
+      {isToday ? "Today" : formatRunDate(run.run_date)} · meet {formatClockTime(run.start_time)} · ~{run.default_km} km
+    </p>
+  );
+  const label = (text: string) => (
+    <p className="text-sm font-medium uppercase tracking-widest text-sunrise-ink">{text}</p>
+  );
+
+  if (checkedIn && log) {
+    return (
+      <Card>
+        {label(isToday ? "Today's run" : "Your last run")}
+        {heading}
+        <div className="flex items-end justify-between">
+          <p>
+            <span className="font-display text-4xl font-bold">{Number(log.distance_km).toFixed(1)}</span>{" "}
+            <span className="text-navy/60">km{log.duration_seconds ? ` · ${formatDuration(log.duration_seconds)}` : ""}</span>
+          </p>
+          <Link href={`/runs/${run.id}/log`} className="text-sm font-medium text-sunrise-ink underline">
+            Edit
+          </Link>
+        </div>
+      </Card>
+    );
+  }
+
+  if (checkedIn) {
+    return (
+      <Card>
+        {label("How far did you go?")}
+        {heading}
+        <Link href={`/runs/${run.id}/log`} className={buttonClass}>
+          Log my km
+        </Link>
+      </Card>
+    );
+  }
+
+  // Not checked in. On run day, before check-in closes, send them to scan.
+  const open = isToday && run.status === "scheduled" && checkInNotClosed(run);
+  return (
+    <Card>
+      {label(isToday ? "Today's run" : "Your last run")}
+      {heading}
+      {open ? (
+        <>
+          <Link href="/scan" className={buttonClass}>
+            Scan to check in
+          </Link>
+          <p className="mt-2 text-center text-sm text-navy/60">
+            Check-in is open {formatTime(run.checkin_opens_at)}–{formatTime(run.checkin_closes_at)}.
+          </p>
+        </>
+      ) : (
+        <p className="text-sm text-navy/70">
+          You weren&apos;t checked in to this run, so there&apos;s nothing to log. Were you there? Ask an organiser to
+          tick you off, then log your km here.
+        </p>
+      )}
+    </Card>
   );
 }

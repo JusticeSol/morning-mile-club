@@ -147,9 +147,10 @@ async function ProfileBody({ searchParams }: Pick<PageProps<"/profile">, "search
                   {log ? (
                     <Link href={`/runs/${r.run_id}/log`} className="text-right">
                       <span className="block font-display text-xl font-bold">{Number(log.distance_km).toFixed(1)} km</span>
-                      {log.duration_seconds && (
-                        <span className="block text-sm text-navy/60">{formatDuration(log.duration_seconds)}</span>
-                      )}
+                      <span className="block text-sm text-navy/60">
+                        {log.duration_seconds ? `${formatDuration(log.duration_seconds)} · ` : ""}
+                        <span className="text-sunrise-ink underline">Edit</span>
+                      </span>
                     </Link>
                   ) : r.runs.status !== "cancelled" ? (
                     <Link href={`/runs/${r.run_id}/log`} className="text-sm font-medium text-sunrise-ink underline">

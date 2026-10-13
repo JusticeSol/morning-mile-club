@@ -8,12 +8,12 @@ import { awardBadges } from "@/lib/badges";
 export type LogState = { status: "idle" } | { status: "error"; message: string };
 
 export async function saveLog(runId: string, _prev: LogState, formData: FormData): Promise<LogState> {
-  const distance = Number(formData.get("distance_km"));
+  const distance = Number(String(formData.get("distance_km") ?? "").replace(",", "."));
   const hours = Number(formData.get("hours") || 0);
   const minutes = Number(formData.get("minutes") || 0);
 
-  if (!Number.isFinite(distance) || distance <= 0 || distance > 60) {
-    return { status: "error", message: "Distance must be between 0.5 and 60 km." };
+  if (!Number.isFinite(distance) || distance < 0.1 || distance > 60) {
+    return { status: "error", message: "Distance must be between 0.1 and 60 km." };
   }
   if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours < 0 || minutes < 0 || minutes > 59) {
     return { status: "error", message: "Time should be whole hours and minutes (0–59)." };

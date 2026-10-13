@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import type { RunStatus } from "@/lib/types";
 
-export type Tab = "home" | "board" | "profile";
+export type Tab = "home" | "scan" | "board" | "profile";
 
 // Shared mobile-first page frame: navy header band, content card below.
 // `nav` adds the bottom nav (members' pages); pass a tab to highlight it.
@@ -41,6 +41,12 @@ const TABS: { tab: Tab; href: string; label: string; icon: ReactNode }[] = [
     icon: <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />,
   },
   {
+    tab: "scan",
+    href: "/scan",
+    label: "Scan",
+    icon: <path d="M3 3h7v7H3zm2 2v3h3V5zm9-2h7v7h-7zm2 2v3h3V5zM3 14h7v7H3zm2 2v3h3v-3zm9-2h3v3h-3zm3 3h4v4h-3v-1h-1zm-3 2h2v2h-2zm5-5h2v2h-2z" />,
+  },
+  {
     tab: "board",
     href: "/leaderboard",
     label: "Board",
@@ -60,7 +66,7 @@ function BottomNav({ active }: { active?: Tab }) {
       aria-label="Main"
       className="fixed inset-x-0 bottom-0 z-10 border-t border-white/10 bg-navy pb-[env(safe-area-inset-bottom)]"
     >
-      <ul className="mx-auto grid max-w-md grid-cols-3">
+      <ul className="mx-auto grid max-w-md grid-cols-4">
         {TABS.map(({ tab, href, label, icon }) => {
           const current = tab === active;
           return (

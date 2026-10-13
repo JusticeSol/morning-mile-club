@@ -6,8 +6,15 @@ import { buttonClass, inputClass, Message } from "@/components/ui";
 import { deleteLog, saveLog, type LogState } from "./actions";
 
 const STEP = 0.5;
-const MIN = 0.5;
+const MIN = 0.1;
 const MAX = 60;
+
+// Accepts "12", "12.3" or "12,3" (comma decimal keyboards); one decimal place.
+function parseKm(text: string) {
+  const n = Number(text.replace(",", "."));
+  return Number.isFinite(n) ? Math.round(n * 10) / 10 : NaN;
+}
+const clamp = (n: number) => Math.min(MAX, Math.max(MIN, Math.round(n * 10) / 10));
 
 export function LogForm({
   runId,
@@ -23,26 +30,40 @@ export function LogForm({
   const [state, action, pending] = useActionState<LogState, FormData>(saveLog.bind(null, runId), {
     status: "idle",
   });
-  const [km, setKm] = useState(initialKm);
+  // Kept as text so members can type freely; the buttons nudge by 0.5.
+  const [text, setText] = useState(initialKm.toFixed(1));
+  const km = parseKm(text);
+  const valid = km >= MIN && km <= MAX;
   const initialMinutes = initialSeconds ? Math.round(initialSeconds / 60) : null;
 
-  const nudge = (delta: number) =>
-    setKm((v) => Math.min(MAX, Math.max(MIN, Math.round((v + delta) * 10) / 10)));
+  const nudge = (delta: number) => setText(clamp((Number.isNaN(km) ? initialKm : km) + delta).toFixed(1));
 
   return (
     <div className="space-y-5">
       <form action={action} className="space-y-6">
-        <input type="hidden" name="distance_km" value={km} />
 
         <div className="flex items-center justify-between gap-3">
-          <StepButton label={`Minus ${STEP} km`} onClick={() => nudge(-STEP)} disabled={km <= MIN}>
+          <StepButton label={`Minus ${STEP} km`} onClick={() => nudge(-STEP)} disabled={valid && km <= MIN}>
             −
           </StepButton>
-          <p className="text-center" aria-live="polite">
-            <span className="font-display text-7xl font-bold leading-none">{km.toFixed(1)}</span>
-            <span className="block text-sm font-medium uppercase tracking-widest text-navy/60">km</span>
-          </p>
-          <StepButton label={`Plus ${STEP} km`} onClick={() => nudge(STEP)} disabled={km >= MAX}>
+          <label className="min-w-0 flex-1 text-center">
+            <input
+              name="distance_km"
+              value={text}
+              onChange={(e) => setText(e.target.value.replace(/[^d.,]/g, "").slice(0, 5))}
+              onBlur={() => valid && setText(km.toFixed(1))}
+              onFocus={(e) => e.target.select()}
+              inputMode="decimal"
+              autoComplete="off"
+              aria-label="Distance in km"
+              aria-invalid={!valid}
+              className="w-full rounded-xl border-2 border-dashed border-navy/20 bg-transparent py-1 text-center font-display text-7xl font-bold leading-none outline-none focus:border-teal"
+            />
+            <span className="block text-sm font-medium uppercase tracking-widest text-navy/60">
+              km · tap to type
+            </span>
+          </label>
+          <StepButton label={`Plus ${STEP} km`} onClick={() => nudge(STEP)} disabled={valid && km >= MAX}>
             +
           </StepButton>
         </div>
@@ -78,9 +99,10 @@ export function LogForm({
           </div>
         </fieldset>
 
+        {!valid && text !== "" && <Message tone="error">Enter a distance between 0.1 and 60 km.</Message>}
         {state.status === "error" && <Message tone="error">{state.message}</Message>}
 
-        <button className={buttonClass} disabled={pending}>
+        <button className={buttonClass} disabled={pending || !valid}>
           {pending ? "Saving…" : hasLog ? "Update my run" : "Log my run"}
         </button>
       </form>
