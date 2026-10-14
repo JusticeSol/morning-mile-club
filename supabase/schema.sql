@@ -429,15 +429,35 @@ create policy "admin milestones" on milestones for all to authenticated using (i
 create policy "read check_ins" on check_ins for select to authenticated using (true);
 create policy "admin check_ins" on check_ins for all to authenticated using (is_admin()) with check (is_admin());
 
--- Run logs: everyone reads (leaderboard); members manage their own, and
--- can only log km for a run they checked in to (QR or ticked by an admin).
+-- Km logging window: opens when check-in closes (after the run) and stays
+-- open for 2 hours, i.e. 08:45–10:45 Lagos time by default. Members log
+-- their own km by hand; nobody gets km automatically.
+create or replace function km_logging_open(p_run_id uuid)
+returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from runs r
+     where r.id = p_run_id
+       and r.status <> 'cancelled'
+       and now() >= r.checkin_closes_at
+       and now() <  r.checkin_closes_at + interval '2 hours'
+  );
+$$;
+
+-- Run logs: everyone reads (leaderboard); members manage their own, only
+-- for a run they checked in to (QR or ticked by an admin), and only while
+-- the km logging window is open.
 create policy "read run_logs" on run_logs for select to authenticated using (true);
 create policy "own run_logs insert" on run_logs for insert to authenticated
   with check (member_id = auth.uid()
+              and km_logging_open(run_id)
               and exists (select 1 from check_ins c
                            where c.run_id = run_logs.run_id and c.member_id = auth.uid()));
-create policy "own run_logs update" on run_logs for update to authenticated using (member_id = auth.uid()) with check (member_id = auth.uid());
-create policy "own run_logs delete" on run_logs for delete to authenticated using (member_id = auth.uid());
+create policy "own run_logs update" on run_logs for update to authenticated
+  using (member_id = auth.uid() and km_logging_open(run_id))
+  with check (member_id = auth.uid() and km_logging_open(run_id));
+create policy "own run_logs delete" on run_logs for delete to authenticated
+  using (member_id = auth.uid() and km_logging_open(run_id));
 
 -- Strava: activities visible to the owner only. Tokens: no policies at all,
 -- so only the service role (your server / Strava webhook handler) can touch them.

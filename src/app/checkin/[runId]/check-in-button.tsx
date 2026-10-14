@@ -12,7 +12,7 @@ export function CheckInButton({ runId, code, name }: { runId: string; code: stri
   });
 
   if (state.status === "done") {
-    return <CheckedIn runId={runId} checkedInAt={state.checkedInAt} badges={state.badges} />;
+    return <CheckedIn checkedInAt={state.checkedInAt} badges={state.badges} />;
   }
 
   return (
@@ -28,15 +28,7 @@ export function CheckInButton({ runId, code, name }: { runId: string; code: stri
   );
 }
 
-export function CheckedIn({
-  runId,
-  checkedInAt,
-  badges = [],
-}: {
-  runId: string;
-  checkedInAt: string;
-  badges?: string[];
-}) {
+export function CheckedIn({ checkedInAt, badges = [] }: { checkedInAt: string; badges?: string[] }) {
   return (
     <div className="space-y-4 text-center">
       <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-teal text-4xl text-white">
@@ -51,10 +43,9 @@ export function CheckedIn({
           New badge{badges.length > 1 ? "s" : ""}: <strong>{badges.join(", ")}</strong>
         </Message>
       )}
-      <p className="text-sm text-navy/60">When you finish, log your distance.</p>
-      <Link href={`/runs/${runId}/log`} className={buttonClass}>
-        Log my km
-      </Link>
+      <p className="text-sm text-navy/60">
+        After the run, log your km from the home page. Logging is open for 2 hours after check-in closes.
+      </p>
       <Link href="/" className="block text-sm text-sunrise-ink underline">
         Back to home
       </Link>

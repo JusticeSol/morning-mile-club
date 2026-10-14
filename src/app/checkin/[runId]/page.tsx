@@ -86,7 +86,7 @@ function CheckInStatus({
   code: string;
   name: string;
 }) {
-  if (existing) return <CheckedIn runId={run.id} checkedInAt={existing.checked_in_at} />;
+  if (existing) return <CheckedIn checkedInAt={existing.checked_in_at} />;
 
   if (run.status === "cancelled") {
     return <Message tone="info">This run was cancelled. See you next Saturday!</Message>;

@@ -34,6 +34,7 @@ export type RecapInput = {
   runners: number;
   km: number;
   logged: number; // how many runners have logged km
+  logDeadline: string | null; // "10:45" while km logging is open, else null
   firstTimers: string[];
   badges: { name: string; badge: string }[];
   streaks: { name: string; weeks: number }[];
@@ -56,11 +57,13 @@ export function buildRecap(r: RecapInput) {
   }
   lines.push(``, `📸 Thanks for the Maryland Mall moments and the banter!`);
   const missing = r.runners - r.logged;
-  lines.push(
-    missing > 0
-      ? `📝 ${missing} of you haven't logged your km yet. Log it here: ${r.site}`
-      : `📝 Everyone's logged their km 🙌 See the leaderboard: ${r.site}/leaderboard`,
-  );
+  if (missing > 0 && r.logDeadline) {
+    lines.push(`📝 ${missing} of you haven't logged your km yet. Log it before ${r.logDeadline}: ${r.site}`);
+  } else if (missing === 0) {
+    lines.push(`📝 Everyone's logged their km 🙌 See the leaderboard: ${r.site}/leaderboard`);
+  } else {
+    lines.push(`🏆 See the leaderboard: ${r.site}/leaderboard`);
+  }
   lines.push(``, `See you next Saturday at Gbagada General Hospital, 6:00 AM! 🌅`);
   return lines.join("\n");
 }

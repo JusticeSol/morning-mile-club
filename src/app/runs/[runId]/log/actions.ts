@@ -4,6 +4,9 @@ import { redirect } from "next/navigation";
 import { refresh } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { awardBadges } from "@/lib/badges";
+import { formatTime } from "@/lib/format";
+import { kmWindow } from "@/lib/km-window";
+import type { Run } from "@/lib/types";
 
 export type LogState = { status: "idle" } | { status: "error"; message: string };
 
@@ -26,6 +29,21 @@ export async function saveLog(runId: string, _prev: LogState, formData: FormData
   } = await supabase.auth.getUser();
   if (!user) redirect(`/login?next=${encodeURIComponent(`/runs/${runId}/log`)}`);
 
+  // RLS enforces the window too; checking first gives a clear message.
+  const { data: run } = await supabase
+    .from("runs")
+    .select("checkin_closes_at, status")
+    .eq("id", runId)
+    .maybeSingle<Pick<Run, "checkin_closes_at" | "status">>();
+  if (!run) return { status: "error", message: "We couldn't find this run." };
+  const km = kmWindow(run);
+  if (km.phase === "before") {
+    return { status: "error", message: `Km logging opens at ${formatTime(km.opensAt)}, after the run.` };
+  }
+  if (km.phase === "closed") {
+    return { status: "error", message: `Km logging for this run closed at ${formatTime(km.closesAt)}.` };
+  }
+
   const { error } = await supabase.from("run_logs").upsert(
     {
       run_id: runId,
@@ -38,9 +56,13 @@ export async function saveLog(runId: string, _prev: LogState, formData: FormData
   );
 
   if (error) {
-    // 42501 = blocked by RLS: no check-in for this run.
+    // 42501 = blocked by RLS: not checked in (or the window just closed).
     if (error.code === "42501") {
-      return { status: "error", message: "You need to be checked in to this run before logging km." };
+      return {
+        status: "error",
+        message: "You need to be checked in to this run, and logging must still be open (until " +
+          `${formatTime(km.closesAt)}).`,
+      };
     }
     console.error("saveLog", error);
     return { status: "error", message: "Couldn't save your run. Please try again." };

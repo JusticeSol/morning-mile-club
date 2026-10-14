@@ -4,6 +4,7 @@ import { buttonClass, Card, Screen } from "@/components/ui";
 import { RouteCard } from "@/components/route-card";
 import { requireMember } from "@/lib/auth";
 import { formatClockTime, formatDuration, formatRunDate, formatTime, lagosToday, memberName } from "@/lib/format";
+import { kmWindow } from "@/lib/km-window";
 import { RUN_COLUMNS, type Run } from "@/lib/types";
 
 export default function Home() {
@@ -120,6 +121,8 @@ function LatestRunCard({
   const label = (text: string) => (
     <p className="text-sm font-medium uppercase tracking-widest text-sunrise-ink">{text}</p>
   );
+  const km = kmWindow(run);
+  const note = (text: string) => <p className="mt-2 text-center text-sm text-navy/60">{text}</p>;
 
   if (checkedIn && log) {
     return (
@@ -131,10 +134,13 @@ function LatestRunCard({
             <span className="font-display text-4xl font-bold">{Number(log.distance_km).toFixed(1)}</span>{" "}
             <span className="text-navy/60">km{log.duration_seconds ? ` · ${formatDuration(log.duration_seconds)}` : ""}</span>
           </p>
-          <Link href={`/runs/${run.id}/log`} className="text-sm font-medium text-sunrise-ink underline">
-            Edit
-          </Link>
+          {km.phase === "open" && (
+            <Link href={`/runs/${run.id}/log`} className="text-sm font-medium text-sunrise-ink underline">
+              Edit
+            </Link>
+          )}
         </div>
+        {km.phase === "open" && note(`You can change it until ${formatTime(km.closesAt)}.`)}
       </Card>
     );
   }
@@ -142,11 +148,24 @@ function LatestRunCard({
   if (checkedIn) {
     return (
       <Card>
-        {label("How far did you go?")}
+        {label(km.phase === "before" ? "You're checked in ✓" : "How far did you go?")}
         {heading}
-        <Link href={`/runs/${run.id}/log`} className={buttonClass}>
-          Log my km
-        </Link>
+        {km.phase === "before" ? (
+          <p className="text-sm text-navy/70">
+            Enjoy the run! Log your km afterwards, between {formatTime(km.opensAt)} and {formatTime(km.closesAt)}.
+          </p>
+        ) : km.phase === "open" ? (
+          <>
+            <Link href={`/runs/${run.id}/log`} className={buttonClass}>
+              Log my km
+            </Link>
+            {note(`Logging closes at ${formatTime(km.closesAt)}.`)}
+          </>
+        ) : (
+          <p className="text-sm text-navy/70">
+            You didn&apos;t log km for this run. Logging closed at {formatTime(km.closesAt)}.
+          </p>
+        )}
       </Card>
     );
   }
@@ -168,8 +187,9 @@ function LatestRunCard({
         </>
       ) : (
         <p className="text-sm text-navy/70">
-          You weren&apos;t checked in to this run, so there&apos;s nothing to log. Were you there? Ask an organiser to
-          tick you off, then log your km here.
+          You weren&apos;t checked in to this run, so there&apos;s nothing to log.
+          {km.phase !== "closed" &&
+            ` Were you there? Ask an organiser to tick you off, then log your km here before ${formatTime(km.closesAt)}.`}
         </p>
       )}
     </Card>

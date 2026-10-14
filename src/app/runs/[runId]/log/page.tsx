@@ -2,7 +2,8 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { Card, Message, Screen } from "@/components/ui";
 import { requireMember } from "@/lib/auth";
-import { formatDuration, formatRunDate } from "@/lib/format";
+import { formatDuration, formatRunDate, formatTime } from "@/lib/format";
+import { kmWindow } from "@/lib/km-window";
 import { RUN_COLUMNS, type Run, type RunLog } from "@/lib/types";
 import { isUuid } from "@/lib/uuid";
 import { LogForm } from "./log-form";
@@ -37,6 +38,14 @@ async function LogBody({ params }: Pick<PageProps<"/runs/[runId]/log">, "params"
   ]);
   if (!run) notFound();
 
+  const km = kmWindow(run);
+  const logged = log && (
+    <>
+      You logged <strong>{Number(log.distance_km).toFixed(1)} km</strong>
+      {log.duration_seconds ? ` in ${formatDuration(log.duration_seconds)}` : ""}.{" "}
+    </>
+  );
+
   return (
     <div className="space-y-5">
       <div className="border-b border-navy/10 pb-4">
@@ -47,22 +56,29 @@ async function LogBody({ params }: Pick<PageProps<"/runs/[runId]/log">, "params"
         <Message tone="info">This run was cancelled, so there&apos;s nothing to log.</Message>
       ) : !checkIn ? (
         <Message tone="info">
-          Check in at the meetup first by scanning the QR code. Forgot? Ask an organiser to tick you off, then
-          come back here.
+          Check in at the meetup first by scanning the QR code. Forgot? Ask an organiser to tick you off before{" "}
+          {formatTime(km.closesAt)}, then come back here.
+        </Message>
+      ) : km.phase === "before" ? (
+        <Message tone="info">
+          Enjoy the run! Log your km after it, between {formatTime(km.opensAt)} and {formatTime(km.closesAt)}.
+        </Message>
+      ) : km.phase === "closed" ? (
+        <Message tone="info">
+          {logged ?? "You didn't log km for this run. "}
+          Km logging for this run closed at {formatTime(km.closesAt)}.
         </Message>
       ) : (
         <>
-          {log && (
-            <Message tone="info">
-              You logged <strong>{Number(log.distance_km).toFixed(1)} km</strong>
-              {log.duration_seconds ? ` in ${formatDuration(log.duration_seconds)}` : ""}. Change it below if you need to.
-            </Message>
-          )}
+          <Message tone="info">
+            {logged && <>{logged}Change it below if you need to. </>}
+            Logging closes at {formatTime(km.closesAt)}.
+          </Message>
           <LogForm
-          runId={run.id}
-          initialKm={Number(log?.distance_km ?? run.default_km)}
-          initialSeconds={log?.duration_seconds ?? null}
-          hasLog={!!log}
+            runId={run.id}
+            initialKm={Number(log?.distance_km ?? run.default_km)}
+            initialSeconds={log?.duration_seconds ?? null}
+            hasLog={!!log}
           />
         </>
       )}

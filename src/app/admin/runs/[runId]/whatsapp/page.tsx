@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { Card, Message, Screen } from "@/components/ui";
 import { WhatsAppMessage } from "@/components/whatsapp-message";
 import { requireAdmin } from "@/lib/auth";
-import { formatRunDate, lagosToday, memberName } from "@/lib/format";
+import { formatRunDate, formatTime, lagosToday, memberName } from "@/lib/format";
+import { kmWindow } from "@/lib/km-window";
 import { siteUrl } from "@/lib/site";
 import { RUN_COLUMNS, type Run } from "@/lib/types";
 import { isUuid } from "@/lib/uuid";
@@ -74,6 +75,7 @@ async function WhatsAppBody({ params }: Pick<PageProps<"/admin/runs/[runId]/what
     runners: runners.length,
     km: (logs ?? []).reduce((sum, l) => sum + Number(l.distance_km), 0),
     logged: (logs ?? []).length,
+    logDeadline: kmWindow(run).phase === "closed" ? null : formatTime(kmWindow(run).closesAt),
     firstTimers: runners.filter((r) => !returning.has(r.id)).map((r) => memberName(r)),
     badges: ((earned ?? []) as unknown as { member_id: string; milestones: { name: string } }[]).map((b) => ({
       name: nameOf.get(b.member_id) ?? "Someone",

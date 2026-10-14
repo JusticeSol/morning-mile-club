@@ -4,6 +4,7 @@ import { Avatar, Card, Message, Screen } from "@/components/ui";
 import { requireMember } from "@/lib/auth";
 import { badgeIcon, sortBadges } from "@/lib/badge-meta";
 import { formatDuration, formatRunDate, memberName } from "@/lib/format";
+import { kmWindow } from "@/lib/km-window";
 import { STATS_COLUMNS, type MemberStats, type Milestone, type RunStatus } from "@/lib/types";
 import { signOut } from "../actions";
 
@@ -20,7 +21,7 @@ export default function ProfilePage({ searchParams }: PageProps<"/profile">) {
 type RecentRun = {
   run_id: string;
   method: "qr" | "admin";
-  runs: { run_date: string; title: string | null; status: RunStatus };
+  runs: { run_date: string; title: string | null; status: RunStatus; checkin_closes_at: string };
 };
 
 async function ProfileBody({ searchParams }: Pick<PageProps<"/profile">, "searchParams">) {
@@ -33,7 +34,7 @@ async function ProfileBody({ searchParams }: Pick<PageProps<"/profile">, "search
     supabase.from("member_milestones").select("milestone_id, earned_at").eq("member_id", user.id),
     supabase
       .from("check_ins")
-      .select("run_id, method, runs(run_date, title, status)")
+      .select("run_id, method, runs(run_date, title, status, checkin_closes_at)")
       .eq("member_id", user.id)
       .order("checked_in_at", { ascending: false })
       .limit(5),
@@ -143,6 +144,7 @@ async function ProfileBody({ searchParams }: Pick<PageProps<"/profile">, "search
           <ul className="divide-y divide-navy/10">
             {recentRuns.map((r) => {
               const log = logBy.get(r.run_id);
+              const phase = kmWindow(r.runs).phase;
               return (
                 <li key={r.run_id} className="flex items-center justify-between gap-3 py-3">
                   <span className="min-w-0">
@@ -150,19 +152,30 @@ async function ProfileBody({ searchParams }: Pick<PageProps<"/profile">, "search
                     <span className="block text-sm text-navy/60">{formatRunDate(r.runs.run_date)}</span>
                   </span>
                   {log ? (
-                    <Link href={`/runs/${r.run_id}/log`} className="text-right">
+                    <span className="text-right">
                       <span className="block font-display text-xl font-bold">{Number(log.distance_km).toFixed(1)} km</span>
                       <span className="block text-sm text-navy/60">
-                        {log.duration_seconds ? `${formatDuration(log.duration_seconds)} · ` : ""}
-                        <span className="text-sunrise-ink underline">Edit</span>
+                        {log.duration_seconds ? formatDuration(log.duration_seconds) : ""}
+                        {phase === "open" && (
+                          <>
+                            {log.duration_seconds ? " · " : ""}
+                            <Link href={`/runs/${r.run_id}/log`} className="text-sunrise-ink underline">
+                              Edit
+                            </Link>
+                          </>
+                        )}
                       </span>
-                    </Link>
-                  ) : r.runs.status !== "cancelled" ? (
+                    </span>
+                  ) : r.runs.status === "cancelled" ? (
+                    <span className="text-sm text-navy/50">Cancelled</span>
+                  ) : phase === "open" ? (
                     <Link href={`/runs/${r.run_id}/log`} className="text-sm font-medium text-sunrise-ink underline">
                       Log km
                     </Link>
+                  ) : phase === "before" ? (
+                    <span className="text-sm text-navy/50">Log after the run</span>
                   ) : (
-                    <span className="text-sm text-navy/50">Cancelled</span>
+                    <span className="text-sm text-navy/50">No km logged</span>
                   )}
                 </li>
               );
