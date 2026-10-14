@@ -17,7 +17,7 @@ const FRIENDLY: Record<string, string> = {
   "Run not found": "We couldn't find this run.",
   "This run was cancelled": "This run was cancelled. See you next Saturday!",
   "Invalid check-in code": "This QR code isn't valid for this run. Scan the code shown at the meetup.",
-  "Check-in is closed for this run": "Check-in is only open 6:00–8:45 AM on run day.",
+  "Check-in is closed for this run": "Check-in is only open 6:00–8:20 AM on run day.",
 };
 
 export async function checkIn(runId: string, code: string): Promise<CheckInState> {

@@ -48,12 +48,12 @@ export function RunControls({ runId, status, isFuture }: { runId: string; status
       <div className="grid grid-cols-2 items-start gap-2">
         {isFuture ? (
           <p className="rounded-xl bg-paper px-3 py-2 text-xs text-navy/60">
-            Completes automatically at 8:45 on run day.
+            Completes automatically at 8:20 on run day.
           </p>
         ) : (
           <ConfirmButton
             onConfirm={() => change("completed")}
-            warning="Finish this run now? Streaks and badges update for everyone checked in. (It happens automatically at 8:45 anyway.)"
+            warning="Finish this run now? Streaks and badges update for everyone checked in. (It happens automatically at 8:20 anyway.)"
             disabled={pending}
             className={`${secondary} border-teal text-teal`}
             armedClassName={armed}

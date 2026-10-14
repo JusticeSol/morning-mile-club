@@ -33,7 +33,7 @@ that are newer than your setup, in date order, in the Supabase SQL Editor. Each 
 2. At the meetup, open the run and tap **Show QR code**. Members scan it with their phone camera
    and tap "I'm here". The screen stays awake and the count updates every 10 seconds.
 3. **Tick-off list:** tap anyone who can't scan (dead phone, no data). QR scans show up there too.
-4. Runs complete automatically once check-in closes (8:45), which awards streaks and badges.
+4. Runs complete automatically once check-in closes (8:20), which awards streaks and badges.
    **Mark completed** does it early. Rained off? **Cancel run**; it won't break anyone's streak.
 5. **WhatsApp reminder & recap** (on the run page): ready-made messages to edit, copy or share.
 
@@ -44,7 +44,7 @@ Set `NEXT_PUBLIC_SITE_URL` in production so the QR code points at the live site.
 
 ## Testing check-in outside Saturday morning
 
-Check-in is only open 06:00–08:45 Lagos time on the run date. To test at another time, widen it:
+Check-in is only open 06:00–08:20 Lagos time on the run date; km logging 08:20–10:45. To test at another time, widen it:
 
 ```sql
 update runs set checkin_opens_at = now() - interval '1 hour',

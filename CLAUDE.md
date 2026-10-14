@@ -20,7 +20,7 @@ Web app for the Morning Mile Club, a running club that runs every Saturday
   - The club leaderboard, streaks and recap use ONLY data created on this site: QR check-ins and self-logged km.
   - Strava sync (optional) feeds a private "my runs" view only. Never show it to other members, and never send it to an AI model.
   - The club can use Strava's own club feature for a Strava-based km leaderboard.
-- **Attendance via QR check-in** at the meetup. The QR links to `/checkin/<run_id>?code=<code>`. Codes live in an admin-only table, and the check-in window is 06:00–08:45 Lagos time.
+- **Attendance via QR check-in** at the meetup. The QR links to `/checkin/<run_id>?code=<code>`. Codes live in an admin-only table, and the check-in window is 06:00–08:20 Lagos time.
 - **Streaks** count consecutive *completed* Saturdays. Cancelled runs (rain, holidays) don't break a streak.
 
 ## MVP scope
@@ -50,7 +50,7 @@ Done: Next.js 16 scaffold (`cacheComponents` on, so request-time reads go inside
 - "I'm in" RSVPs (`rsvps` table) on the home page's Next run card; count shown on the admin run page and in the morning reminder.
 - Share cards: `/share/[runId]/card` renders a 1080×1920 PNG (next/og, fonts in `assets/fonts`, traced via `outputFileTracingIncludes`). Own card only; club data only, never Strava.
 - Leaderboard has a pace-group filter (`?pace=easy|steady|fast`).
-- Km logging (decided 2026-10-13): members log their own km by hand, only for runs they checked in to, and only in a window from check-in close until 2 hours later (08:45–10:45). Enforced by `km_logging_open()` in RLS; `src/lib/km-window.ts` mirrors it for the UI. No automatic km for people who forget: it would put false figures on the board.
+- Km logging (decided 2026-10-13): members log their own km by hand, only for runs they checked in to, and only in a window from check-in close until 2 h 25 min later (08:20–10:45; times changed 2026-10-14). Enforced by `km_logging_open()` in RLS; `src/lib/km-window.ts` mirrors it for the UI. No automatic km for people who forget: it would put false figures on the board.
 
 ## Open decisions (remind Justice)
 Justice asked to be reminded about undecided items until a decision is made. Bring them up briefly at the start of a session and whenever related work comes up. Remove an item once it's decided. None open right now.

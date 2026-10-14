@@ -56,7 +56,8 @@ create table runs (
   created_at        timestamptz not null default now()
 );
 
--- Check-in window: 06:00–08:45 Lagos time on run day, unless set manually.
+-- Check-in window: 06:00–08:20 Lagos time on run day, unless set manually.
+-- 08:20 is also when the run auto-completes and km logging opens.
 create or replace function set_checkin_window() returns trigger
 language plpgsql as $$
 begin
@@ -64,7 +65,7 @@ begin
     new.checkin_opens_at := (new.run_date + time '06:00') at time zone 'Africa/Lagos';
   end if;
   if new.checkin_closes_at is null then
-    new.checkin_closes_at := (new.run_date + time '08:45') at time zone 'Africa/Lagos';
+    new.checkin_closes_at := (new.run_date + time '08:20') at time zone 'Africa/Lagos';
   end if;
   return new;
 end $$;
@@ -448,7 +449,7 @@ create policy "read check_ins" on check_ins for select to authenticated using (t
 create policy "admin check_ins" on check_ins for all to authenticated using (is_admin()) with check (is_admin());
 
 -- Km logging window: opens when check-in closes (after the run) and stays
--- open for 2 hours, i.e. 08:45–10:45 Lagos time by default. Members log
+-- open for 2 h 25 min, i.e. 08:20–10:45 Lagos time by default. Members log
 -- their own km by hand; nobody gets km automatically.
 create or replace function km_logging_open(p_run_id uuid)
 returns boolean
@@ -458,7 +459,7 @@ language sql stable security definer set search_path = public as $$
      where r.id = p_run_id
        and r.status <> 'cancelled'
        and now() >= r.checkin_closes_at
-       and now() <  r.checkin_closes_at + interval '2 hours'
+       and now() <  r.checkin_closes_at + interval '2 hours 25 minutes'
   );
 $$;
 

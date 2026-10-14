@@ -119,7 +119,7 @@ async function WhatsAppBody({ params }: Pick<PageProps<"/admin/runs/[runId]/what
             hint={
               run.status === "completed"
                 ? "Badges and streaks are final. Best posted after most people have logged their km."
-                : "Streaks and Saturday badges appear once check-in closes (8:45)."
+                : "Streaks and Saturday badges appear once check-in closes (8:20)."
             }
             text={recap}
           />

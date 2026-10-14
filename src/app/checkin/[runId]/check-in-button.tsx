@@ -44,7 +44,7 @@ export function CheckedIn({ checkedInAt, badges = [] }: { checkedInAt: string; b
         </Message>
       )}
       <p className="text-sm text-navy/60">
-        After the run, log your km from the home page. Logging is open for 2 hours after check-in closes.
+        After the run, log your km from the home page, between 8:20 and 10:45.
       </p>
       <Link href="/" className="block text-sm text-sunrise-ink underline">
         Back to home
