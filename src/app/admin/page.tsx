@@ -5,6 +5,9 @@ import { requireAdmin } from "@/lib/auth";
 import { formatRunDate, nextSaturday } from "@/lib/format";
 import type { RunStatus } from "@/lib/types";
 import { NewRunForm } from "./new-run-form";
+import { GoalForm } from "./goal-form";
+import { GoalCard } from "@/components/goal-card";
+import { currentMonth, getGoalProgress } from "@/lib/goal";
 
 type RecapRow = {
   run_id: string;
@@ -34,6 +37,7 @@ async function AdminBody() {
     .order("run_date", { ascending: false })
     .limit(20);
   const runs = data as RecapRow[] | null;
+  const goal = await getGoalProgress(supabase);
 
   return (
     <div className="space-y-4">
@@ -41,6 +45,14 @@ async function AdminBody() {
         <h2 className="mb-3 font-display text-xl font-bold uppercase">New run</h2>
         <NewRunForm defaultDate={nextSaturday()} />
       </Card>
+
+      <section id="goal" className="space-y-3">
+        {goal && <GoalCard goal={goal} />}
+        <Card>
+          <h2 className="mb-3 font-display text-xl font-bold uppercase">Club goal</h2>
+          <GoalForm month={currentMonth().start.slice(0, 7)} name={goal?.name} targetKm={goal?.targetKm} />
+        </Card>
+      </section>
 
       <Card>
         <h2 className="mb-1 font-display text-xl font-bold uppercase">All runs</h2>

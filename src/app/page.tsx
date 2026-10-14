@@ -1,7 +1,11 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { buttonClass, Card, Screen } from "@/components/ui";
+import { GoalCard } from "@/components/goal-card";
 import { RouteCard } from "@/components/route-card";
+import { RsvpButton } from "@/components/rsvp-button";
+import { ShareCardButton } from "@/components/share-card-button";
+import { getGoalProgress } from "@/lib/goal";
 import { requireMember } from "@/lib/auth";
 import { formatClockTime, formatDuration, formatRunDate, formatTime, lagosToday, memberName } from "@/lib/format";
 import { kmWindow } from "@/lib/km-window";
@@ -41,6 +45,15 @@ async function HomeBody() {
       .maybeSingle<Run>(),
   ]);
 
+  const [goal, { data: rsvps }] = await Promise.all([
+    getGoalProgress(supabase),
+    nextRun
+      ? supabase.from("rsvps").select("member_id, profiles(full_name, display_name)").eq("run_id", nextRun.id)
+      : Promise.resolve({ data: [] }),
+  ]);
+  const coming = (rsvps ?? []) as unknown as { member_id: string; profiles: { full_name: string; display_name: string | null } }[];
+  const imIn = coming.some((r) => r.member_id === user.id);
+
   const [{ data: checkIn }, { data: log }] = latestRun
     ? await Promise.all([
         supabase.from("check_ins").select("id").eq("run_id", latestRun.id).eq("member_id", user.id).maybeSingle(),
@@ -59,6 +72,16 @@ async function HomeBody() {
         Hi <strong>{memberName(profile)}</strong> 👋
       </p>
 
+      {goal ? (
+        <GoalCard goal={goal} />
+      ) : (
+        profile.role === "admin" && (
+          <Link href="/admin#goal" className="block rounded-2xl border-2 border-dashed border-navy/15 p-4 text-center text-sm font-medium text-sunrise-ink">
+            Set this month&apos;s club goal →
+          </Link>
+        )
+      )}
+
       {latestRun && (
         <LatestRunCard
           run={latestRun}
@@ -74,9 +97,15 @@ async function HomeBody() {
           <>
             <p className="font-display text-2xl font-bold uppercase">{nextRun.title ?? "Saturday run"}</p>
             <p className="text-navy/70">
-              {formatRunDate(nextRun.run_date)} · meet {formatClockTime(nextRun.start_time)} · ~
+              {formatRunDate(nextRun.run_date)} · run starts {formatClockTime(nextRun.start_time)} · ~
               {nextRun.default_km} km
             </p>
+            <RsvpButton
+              runId={nextRun.id}
+              going={imIn}
+              count={coming.length}
+              names={coming.filter((r) => r.member_id !== user.id).map((r) => memberName(r.profiles))}
+            />
             <p className="mt-3 text-sm text-navy/60">On the day, tap Scan below to check in at the meetup.</p>
           </>
         ) : (
@@ -115,7 +144,7 @@ function LatestRunCard({
   const heading = (
     <p className="mb-3 text-navy/70">
       <span className="block font-display text-2xl font-bold uppercase text-navy">{run.title ?? "Saturday run"}</span>
-      {isToday ? "Today" : formatRunDate(run.run_date)} · meet {formatClockTime(run.start_time)} · ~{run.default_km} km
+      {isToday ? "Today" : formatRunDate(run.run_date)} · run starts {formatClockTime(run.start_time)} · ~{run.default_km} km
     </p>
   );
   const label = (text: string) => (
@@ -141,6 +170,7 @@ function LatestRunCard({
           )}
         </div>
         {km.phase === "open" && note(`You can change it until ${formatTime(km.closesAt)}.`)}
+        <ShareCardButton runId={run.id} className="mt-4" />
       </Card>
     );
   }
@@ -151,9 +181,12 @@ function LatestRunCard({
         {label(km.phase === "before" ? "You're checked in ✓" : "How far did you go?")}
         {heading}
         {km.phase === "before" ? (
-          <p className="text-sm text-navy/70">
-            Enjoy the run! Log your km afterwards, between {formatTime(km.opensAt)} and {formatTime(km.closesAt)}.
-          </p>
+          <>
+            <p className="text-sm text-navy/70">
+              Enjoy the run! Log your km afterwards, between {formatTime(km.opensAt)} and {formatTime(km.closesAt)}.
+            </p>
+            <ShareCardButton runId={run.id} className="mt-4" />
+          </>
         ) : km.phase === "open" ? (
           <>
             <Link href={`/runs/${run.id}/log`} className={buttonClass}>

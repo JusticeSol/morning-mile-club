@@ -46,10 +46,14 @@ Done: Next.js 16 scaffold (`cacheComponents` on, so request-time reads go inside
 - Badges: attendance 1/4/7/10 (+25/52) are named after the route; special badges Wake-Up Crew (first 5 QR check-ins) and Comeback Kid (back after missing 3+ Saturdays). Logic in `award_milestones()`.
 - Admin WhatsApp page (`/admin/runs/[runId]/whatsapp`): morning reminder + post-run recap, built in `src/lib/whatsapp.ts`.
 - The route is in `src/lib/route.ts` and shown on the home page.
+- Club goal: one per month in `club_goals`, set by admins on /admin; progress = km logged on that month's non-cancelled runs (`src/lib/goal.ts`). Shown on home and in the recap.
+- "I'm in" RSVPs (`rsvps` table) on the home page's Next run card; count shown on the admin run page and in the morning reminder.
+- Share cards: `/share/[runId]/card` renders a 1080×1920 PNG (next/og, fonts in `assets/fonts`, traced via `outputFileTracingIncludes`). Own card only; club data only, never Strava.
+- Leaderboard has a pace-group filter (`?pace=easy|steady|fast`).
 - Km logging (decided 2026-10-13): members log their own km by hand, only for runs they checked in to, and only in a window from check-in close until 2 hours later (08:45–10:45). Enforced by `km_logging_open()` in RLS; `src/lib/km-window.ts` mirrors it for the UI. No automatic km for people who forget: it would put false figures on the board.
 
 ## Open decisions (remind Justice)
 Justice asked to be reminded about undecided items until a decision is made. Bring them up briefly at the start of a session and whenever related work comes up. Remove an item once it's decided. None open right now.
 
 ## Next step
-Club goal (e.g. "Gbagada → Ibadan, 130 km" progress bar), then share cards for WhatsApp status, "I'm in" RSVP, pace-group boards, profile photos, Maryland Mall photo of the week, announcements.
+After a few real Saturdays: "hide me from the leaderboard" option, profile photos (Supabase Storage), Maryland Mall photo of the week, announcements.

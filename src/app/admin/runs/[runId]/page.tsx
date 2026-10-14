@@ -25,11 +25,12 @@ async function AdminRunBody({ params }: Pick<PageProps<"/admin/runs/[runId]">, "
   if (!isUuid(runId)) notFound();
   const { supabase } = await requireAdmin(`/admin/runs/${runId}`);
 
-  const [{ data: run }, { data: members }, { data: checkIns }, { data: logs }] = await Promise.all([
+  const [{ data: run }, { data: members }, { data: checkIns }, { data: logs }, { count: comingCount }] = await Promise.all([
     supabase.from("runs").select(RUN_COLUMNS).eq("id", runId).maybeSingle<Run>(),
     supabase.from("profiles").select("id, full_name, display_name, pace_group").order("full_name"),
     supabase.from("check_ins").select("member_id, method, checked_in_at").eq("run_id", runId),
     supabase.from("run_logs").select("member_id, distance_km").eq("run_id", runId),
+    supabase.from("rsvps").select("run_id", { count: "exact", head: true }).eq("run_id", runId),
   ]);
   if (!run) notFound();
 
@@ -68,7 +69,11 @@ async function AdminRunBody({ params }: Pick<PageProps<"/admin/runs/[runId]">, "
           <StatusPill status={run.status} />
         </div>
 
-        <dl className="my-4 grid grid-cols-2 gap-3 text-center">
+        <dl className="my-4 grid grid-cols-3 gap-3 text-center">
+          <div className="rounded-xl bg-paper py-3">
+            <dt className="text-xs font-medium uppercase tracking-widest text-navy/60">Said I&apos;m in</dt>
+            <dd className="font-display text-3xl font-bold">{comingCount ?? 0}</dd>
+          </div>
           <div className="rounded-xl bg-paper py-3">
             <dt className="text-xs font-medium uppercase tracking-widest text-navy/60">Checked in</dt>
             <dd className="font-display text-3xl font-bold">{checkInBy.size}</dd>

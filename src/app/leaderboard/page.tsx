@@ -3,7 +3,9 @@ import Link from "next/link";
 import { Avatar, Card, Screen } from "@/components/ui";
 import { requireMember } from "@/lib/auth";
 import { memberName } from "@/lib/format";
-import { STATS_COLUMNS, type MemberStats } from "@/lib/types";
+import { STATS_COLUMNS, type MemberStats, type PaceGroup } from "@/lib/types";
+
+const PACES: PaceGroup[] = ["easy", "steady", "fast"];
 
 // Only club-created data (QR check-ins and self-logged km) feeds this
 // board; never Strava data. See CLAUDE.md.
@@ -47,13 +49,18 @@ export default function LeaderboardPage({ searchParams }: PageProps<"/leaderboar
 }
 
 async function LeaderboardBody({ searchParams }: Pick<PageProps<"/leaderboard">, "searchParams">) {
-  const { tab } = await searchParams;
+  const { tab, pace: paceParam } = await searchParams;
   const board: Board = tab === "attendance" || tab === "streaks" ? tab : "distance";
-  const { supabase, user } = await requireMember(`/leaderboard?tab=${board}`);
+  const pace = PACES.find((p) => p === paceParam) ?? null;
+  const href = (b: Board, p: PaceGroup | null) => `/leaderboard?tab=${b}${p ? `&pace=${p}` : ""}`;
+  const { supabase, user, profile } = await requireMember(href(board, pace));
   const { value, show, empty } = BOARDS[board];
 
   const { data } = await supabase.from("member_stats").select(STATS_COLUMNS);
-  const ranked = rank(((data ?? []) as MemberStats[]).filter((s) => value(s) > 0), value);
+  const ranked = rank(
+    ((data ?? []) as MemberStats[]).filter((s) => value(s) > 0 && (!pace || s.pace_group === pace)),
+    value,
+  );
   const mine = ranked.find((r) => r.stats.member_id === user.id);
   const top = ranked.slice(0, TOP);
 
@@ -63,7 +70,7 @@ async function LeaderboardBody({ searchParams }: Pick<PageProps<"/leaderboard">,
         {(Object.keys(BOARDS) as Board[]).map((b) => (
           <Link
             key={b}
-            href={`/leaderboard?tab=${b}`}
+            href={href(b, pace)}
             role="tab"
             aria-selected={b === board}
             className={`rounded-lg py-2 text-center font-display text-lg font-bold uppercase ${
@@ -75,9 +82,24 @@ async function LeaderboardBody({ searchParams }: Pick<PageProps<"/leaderboard">,
         ))}
       </div>
 
+      <div className="flex gap-2" aria-label="Pace group">
+        {([null, ...PACES] as (PaceGroup | null)[]).map((p) => (
+          <Link
+            key={p ?? "all"}
+            href={href(board, p)}
+            aria-current={p === pace ? "true" : undefined}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold capitalize ${
+              p === pace ? "bg-sunrise text-white" : "bg-white text-navy/70 shadow-sm"
+            }`}
+          >
+            {p ?? "Everyone"}
+          </Link>
+        ))}
+      </div>
+
       <Card>
         {top.length === 0 ? (
-          <p className="text-navy/60">{empty}</p>
+          <p className="text-navy/60">{pace ? `Nobody in the ${pace} group is on this board yet.` : empty}</p>
         ) : (
           <ol className="divide-y divide-navy/10">
             {top.map((r) => (
@@ -95,7 +117,7 @@ async function LeaderboardBody({ searchParams }: Pick<PageProps<"/leaderboard">,
           </ol>
         </Card>
       )}
-      {!mine && top.length > 0 && (
+      {!mine && top.length > 0 && (!pace || pace === profile.pace_group) && (
         <p className="text-center text-sm text-navy/60">You&apos;re not on this board yet. See you Saturday!</p>
       )}
       <p className="text-center text-xs text-navy/50">

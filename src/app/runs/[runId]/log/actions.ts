@@ -70,7 +70,7 @@ export async function saveLog(runId: string, _prev: LogState, formData: FormData
 
   await awardBadges(supabase, user.id, runId);
   // Land on the profile so members see the km added to their totals.
-  redirect(`/profile?saved=log&km=${Math.round(distance * 10) / 10}`);
+  redirect(`/profile?saved=log&km=${Math.round(distance * 10) / 10}&run=${runId}`);
 }
 
 export async function deleteLog(runId: string) {

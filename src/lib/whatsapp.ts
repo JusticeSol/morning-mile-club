@@ -8,11 +8,13 @@ export function buildReminder({
   when,
   startTime,
   site,
+  coming = 0,
 }: {
   title: string;
   when: string; // "today" or "Saturday 18 October"
   startTime: string;
   site: string;
+  coming?: number; // members who tapped "I'm in"
 }) {
   const [meet, start, anthony, maryland, back, finish] = saturdayRoute(startTime);
   return [
@@ -22,6 +24,7 @@ export function buildReminder({
     `${meet.icon} Meet at ${meet.place}, ${meet.time} AM`,
     `${start.icon} We stroll to ${start.place} and start running at ${start.time}`,
     `${anthony.icon} ${anthony.place} (5-min break) → ${maryland.icon} ${maryland.place} → ${back.icon} back to ${back.place} → ${finish.icon} ${finish.place} for the final group picture, coffee and refreshments`,
+    ...(coming > 0 ? [``, `💪 ${coming} runner${coming === 1 ? " has" : "s have"} said they're in. Join them!`] : []),
     ``,
     `✅ When you arrive, open ${site} and tap *Scan* to check in.`,
     `See you there! 🏃`,
@@ -38,6 +41,7 @@ export type RecapInput = {
   firstTimers: string[];
   badges: { name: string; badge: string }[];
   streaks: { name: string; weeks: number }[];
+  goal?: { name: string; km: number; targetKm: number } | null;
   site: string;
 };
 
@@ -54,6 +58,15 @@ export function buildRecap(r: RecapInput) {
   }
   if (r.streaks.length) {
     lines.push(``, `🔥 *On a streak:* ${r.streaks.map((s) => `${s.name} (${s.weeks} weeks)`).join(", ")}`);
+  }
+  if (r.goal) {
+    const pct = Math.min(100, Math.round((r.goal.km / r.goal.targetKm) * 100));
+    lines.push(
+      ``,
+      pct >= 100
+        ? `🎯 *Club goal smashed:* ${r.goal.name}, ${r.goal.km.toFixed(0)} / ${r.goal.targetKm.toFixed(0)} km 🎉`
+        : `🎯 *Club goal:* ${r.goal.name}, ${r.goal.km.toFixed(0)} / ${r.goal.targetKm.toFixed(0)} km (${pct}%)`,
+    );
   }
   lines.push(``, `📸 Thanks for the Maryland Mall moments and the banter!`);
   const missing = r.runners - r.logged;

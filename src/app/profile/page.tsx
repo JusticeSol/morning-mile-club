@@ -5,6 +5,8 @@ import { requireMember } from "@/lib/auth";
 import { badgeIcon, sortBadges } from "@/lib/badge-meta";
 import { formatDuration, formatRunDate, memberName } from "@/lib/format";
 import { kmWindow } from "@/lib/km-window";
+import { isUuid } from "@/lib/uuid";
+import { ShareCardButton } from "@/components/share-card-button";
 import { STATS_COLUMNS, type MemberStats, type Milestone, type RunStatus } from "@/lib/types";
 import { signOut } from "../actions";
 
@@ -25,7 +27,7 @@ type RecentRun = {
 };
 
 async function ProfileBody({ searchParams }: Pick<PageProps<"/profile">, "searchParams">) {
-  const { saved, km } = await searchParams;
+  const { saved, km, run: savedRun } = await searchParams;
   const { supabase, user, profile } = await requireMember("/profile");
 
   const [{ data: statsRow }, { data: milestones }, { data: earned }, { data: recent }] = await Promise.all([
@@ -65,9 +67,12 @@ async function ProfileBody({ searchParams }: Pick<PageProps<"/profile">, "search
   return (
     <div className="space-y-4">
       {saved === "log" && (
-        <Message tone="info">
-          Run logged{typeof km === "string" && ` — ${Number(km).toFixed(1)} km`}. Nice work! 🎉
-        </Message>
+        <div className="space-y-2">
+          <Message tone="info">
+            Run logged{typeof km === "string" && ` — ${Number(km).toFixed(1)} km`}. Nice work! 🎉
+          </Message>
+          {typeof savedRun === "string" && isUuid(savedRun) && <ShareCardButton runId={savedRun} />}
+        </div>
       )}
       {saved === "profile" && <Message tone="info">Profile updated.</Message>}
 

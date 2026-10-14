@@ -6,6 +6,7 @@ import { WhatsAppMessage } from "@/components/whatsapp-message";
 import { requireAdmin } from "@/lib/auth";
 import { formatRunDate, formatTime, lagosToday, memberName } from "@/lib/format";
 import { kmWindow } from "@/lib/km-window";
+import { getGoalProgress } from "@/lib/goal";
 import { siteUrl } from "@/lib/site";
 import { RUN_COLUMNS, type Run } from "@/lib/types";
 import { isUuid } from "@/lib/uuid";
@@ -30,11 +31,13 @@ async function WhatsAppBody({ params }: Pick<PageProps<"/admin/runs/[runId]/what
   if (!isUuid(runId)) notFound();
   const { supabase } = await requireAdmin(`/admin/runs/${runId}/whatsapp`);
 
-  const [{ data: run }, { data: checkIns }, { data: logs }, { data: earned }] = await Promise.all([
+  const [{ data: run }, { data: checkIns }, { data: logs }, { data: earned }, { count: coming }, goal] = await Promise.all([
     supabase.from("runs").select(RUN_COLUMNS).eq("id", runId).maybeSingle<Run>(),
     supabase.from("check_ins").select("member_id, profiles(id, full_name, display_name)").eq("run_id", runId),
     supabase.from("run_logs").select("member_id, distance_km").eq("run_id", runId),
     supabase.from("member_milestones").select("member_id, milestones(name)").eq("run_id", runId),
+    supabase.from("rsvps").select("run_id", { count: "exact", head: true }).eq("run_id", runId),
+    getGoalProgress(supabase),
   ]);
   if (!run) notFound();
 
@@ -68,7 +71,7 @@ async function WhatsAppBody({ params }: Pick<PageProps<"/admin/runs/[runId]/what
   const title = run.title ?? "Saturday run";
   const when = run.run_date === lagosToday() ? "today" : `on ${formatRunDate(run.run_date)}`;
 
-  const reminder = buildReminder({ title, when, startTime: run.start_time, site });
+  const reminder = buildReminder({ title, when, startTime: run.start_time, site, coming: coming ?? 0 });
   const recap = buildRecap({
     title,
     date: formatRunDate(run.run_date),
@@ -85,6 +88,7 @@ async function WhatsAppBody({ params }: Pick<PageProps<"/admin/runs/[runId]/what
       name: nameOf.get(s.member_id as string) ?? "Someone",
       weeks: Number(s.current_streak),
     })),
+    goal: goal && { name: goal.name, km: goal.km, targetKm: goal.targetKm },
     site,
   });
 

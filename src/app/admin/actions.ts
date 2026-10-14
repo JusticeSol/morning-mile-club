@@ -93,3 +93,28 @@ export async function setAttendance(runId: string, memberId: string, present: bo
   refresh();
   return {};
 }
+
+// Monthly club goal: one per month, admins can change it any time.
+export async function setGoal(_prev: { error?: string; saved?: boolean }, formData: FormData) {
+  const month = String(formData.get("month") ?? ""); // YYYY-MM from <input type="month">
+  const name = String(formData.get("name") ?? "").trim();
+  const target = Number(formData.get("target_km"));
+
+  if (!/^\d{4}-\d{2}$/.test(month)) return { error: "Pick a month." };
+  if (name.length < 2 || name.length > 60) return { error: "Give the goal a short name, e.g. Gbagada → Abuja." };
+  if (!(target > 0 && target <= 99999)) return { error: "Target must be a number of km above 0." };
+
+  const { supabase, user } = await adminClient();
+  const { error } = await supabase
+    .from("club_goals")
+    .upsert(
+      { month: `${month}-01`, name, target_km: Math.round(target * 10) / 10, created_by: user.id },
+      { onConflict: "month" },
+    );
+  if (error) {
+    console.error("setGoal", error);
+    return { error: "Couldn't save the goal. Please try again." };
+  }
+  refresh();
+  return { saved: true };
+}
