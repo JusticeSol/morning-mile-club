@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { buttonClass, Card, Screen, StatusPill } from "@/components/ui";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { requireAdmin } from "@/lib/auth";
-import { formatClockTime, formatRunDate, formatTime, memberName } from "@/lib/format";
+import { formatClockTime, formatRunDate, formatTime, lagosToday, memberName } from "@/lib/format";
 import { RUN_COLUMNS, type PaceGroup, type Run } from "@/lib/types";
 import { isUuid } from "@/lib/uuid";
 import { AttendanceList, type AttendanceRow } from "./attendance-list";
@@ -89,7 +89,7 @@ async function AdminRunBody({ params }: Pick<PageProps<"/admin/runs/[runId]">, "
             Show QR code
           </Link>
         )}
-        <RunControls runId={run.id} status={run.status} />
+        <RunControls runId={run.id} status={run.status} isFuture={run.run_date > lagosToday()} />
         <Link
           href={`/admin/runs/${run.id}/whatsapp`}
           className="mt-2 block rounded-xl bg-[#25D366]/10 px-4 py-3 text-center font-medium text-[#128C7E]"

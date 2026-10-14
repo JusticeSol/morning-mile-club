@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { refresh } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { awardBadges } from "@/lib/badges";
+import { lagosToday } from "@/lib/format";
 import type { RunStatus } from "@/lib/types";
 
 // Server actions are public endpoints, so each one re-checks the caller.
@@ -51,6 +52,12 @@ export async function createRun(_prev: { error?: string }, formData: FormData): 
 
 export async function setRunStatus(runId: string, status: RunStatus) {
   const { supabase } = await adminClient();
+
+  // A run can't be completed before its day (it would count streaks early).
+  if (status === "completed") {
+    const { data: run } = await supabase.from("runs").select("run_date").eq("id", runId).maybeSingle();
+    if (!run || run.run_date > lagosToday()) return;
+  }
   const { error } = await supabase.from("runs").update({ status }).eq("id", runId);
   if (error) {
     console.error("setRunStatus", error);
