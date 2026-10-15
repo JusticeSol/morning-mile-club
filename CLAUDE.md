@@ -38,7 +38,8 @@ Later: route map page, photo wall, share cards, monthly club total.
 - `supabase/schema.sql`: full database schema with RLS, views (`member_stats`, `member_streaks`, `run_recap`) and functions (`check_in`, `award_milestones`, `is_admin`). Tested on Postgres 16 with a stubbed `auth` schema.
 - Screen designs (Home, Check-in, Profile, Leaderboard, Admin recap) are on Justice's Claude design canvas "Morning Mile Club Screens".
   - Look: navy `#101820`, sunrise orange `#F97316` (fills) / `#C2410C` (text), teal `#0F766E`, background `#F3F4EF`.
-  - Fonts: Barlow Condensed (headings) and Barlow (body). Mobile-first, bottom nav with Home / Board / Profile.
+  - Fonts: Barlow Condensed (headings, buttons, labels) and Barlow (body). Page titles and big numbers use the hand-painted Permanent Marker (`font-hand`), chosen by Justice on 2026-10-15. Mobile-first, bottom nav with Home / Scan / Board / Profile.
+  - Home headline / slogan: "LET'S RUN" (under the "Morning Mile Club" eyebrow).
 
 ## Status
 Done: Next.js 16 scaffold (`cacheComponents` on, so request-time reads go inside `<Suspense>`; middleware is `src/proxy.ts`), Supabase auth (email/phone OTP + magic link via `/auth/callback`), onboarding (creates the `profiles` row), QR check-in at `src/app/checkin/[runId]`, km logging at `src/app/runs/[runId]/log`, admin at `src/app/admin` (create runs, full-screen QR, tick-off list, complete/cancel), leaderboard at `src/app/leaderboard` (Distance / Attendance / Streaks from `member_stats`), and profile at `src/app/profile` (stats, badges, recent runs, edit). Bottom nav is the `nav` prop on `Screen` in `src/components/ui.tsx`.

@@ -25,7 +25,7 @@ export function GoalCard({ goal }: { goal: GoalProgress }) {
       </div>
       <div className="flex items-baseline justify-between">
         <p>
-          <span className="font-display text-3xl font-bold">{goal.km.toFixed(1)}</span>
+          <span className="font-hand text-3xl">{goal.km.toFixed(1)}</span>
           <span className="text-navy/60"> / {goal.targetKm.toFixed(0)} km</span>
         </p>
         <p className="font-display text-xl font-bold text-sunrise-ink">{pct}%</p>

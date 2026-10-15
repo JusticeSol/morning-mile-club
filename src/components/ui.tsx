@@ -24,7 +24,7 @@ export function Screen({
           {eyebrow && (
             <p className="text-sm font-medium uppercase tracking-widest text-sunrise">{eyebrow}</p>
           )}
-          <h1 className="font-display text-4xl font-bold uppercase leading-none">{title}</h1>
+          <h1 className="font-hand text-4xl uppercase leading-tight">{title}</h1>
         </div>
       </header>
       <div className="mx-auto w-full max-w-md flex-1 px-5 py-6">{children}</div>

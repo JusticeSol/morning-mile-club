@@ -8,6 +8,7 @@
   --color-paper: #f3f4ef;
   --font-sans: var(--font-barlow);
   --font-display: var(--font-barlow-condensed);
+  --font-hand: var(--font-permanent-marker);
 }
 
 body {

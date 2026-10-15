@@ -13,7 +13,7 @@ import { RUN_COLUMNS, type Run } from "@/lib/types";
 
 export default function Home() {
   return (
-    <Screen eyebrow="Morning Mile Club" title="Every Saturday" nav="home">
+    <Screen eyebrow="Morning Mile Club" title="Let's run" nav="home">
       <Suspense fallback={<Card><p className="text-navy/60">Loading…</p></Card>}>
         <HomeBody />
       </Suspense>
@@ -160,7 +160,7 @@ function LatestRunCard({
         {heading}
         <div className="flex items-end justify-between">
           <p>
-            <span className="font-display text-4xl font-bold">{Number(log.distance_km).toFixed(1)}</span>{" "}
+            <span className="font-hand text-4xl">{Number(log.distance_km).toFixed(1)}</span>{" "}
             <span className="text-navy/60">km{log.duration_seconds ? ` · ${formatDuration(log.duration_seconds)}` : ""}</span>
           </p>
           {km.phase === "open" && (

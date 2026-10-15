@@ -209,7 +209,7 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm">
       <p className="text-xs font-medium uppercase tracking-widest text-navy/60">{label}</p>
-      <p className="font-display text-4xl font-bold leading-tight">{value}</p>
+      <p className="font-hand text-4xl leading-tight">{value}</p>
       {hint && <p className="text-xs text-navy/50">{hint}</p>}
     </div>
   );

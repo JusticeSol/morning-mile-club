@@ -56,7 +56,7 @@ export function LogForm({
               autoComplete="off"
               aria-label="Distance in km"
               aria-invalid={!valid}
-              className="w-full rounded-xl border-2 border-dashed border-navy/20 bg-transparent py-1 text-center font-display text-7xl font-bold leading-none outline-none focus:border-teal"
+              className="w-full rounded-xl border-2 border-dashed border-navy/20 bg-transparent py-1 text-center font-hand text-7xl leading-none outline-none focus:border-teal"
             />
             <span className="block text-sm font-medium uppercase tracking-widest text-navy/60">km</span>
           </label>
