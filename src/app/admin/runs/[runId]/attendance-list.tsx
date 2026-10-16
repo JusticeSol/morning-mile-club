@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useOptimistic, useState, useTransition } from "react";
 import { inputClass, Message } from "@/components/ui";
 import type { PaceGroup } from "@/lib/types";
@@ -60,12 +61,12 @@ export function AttendanceList({ runId, rows }: { runId: string; rows: Attendanc
       {error && <Message tone="error">{error}</Message>}
       <ul className="divide-y divide-navy/10">
         {shown.map((row) => (
-          <li key={row.id}>
+          <li key={row.id} className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => toggle(row)}
               aria-pressed={!!row.method}
-              className="flex w-full items-center gap-3 py-3 text-left"
+              className="flex min-w-0 flex-1 items-center gap-3 py-3 text-left"
             >
               <span
                 className={`flex size-8 shrink-0 items-center justify-center rounded-full border-2 text-lg font-bold ${
@@ -84,8 +85,19 @@ export function AttendanceList({ runId, rows }: { runId: string; rows: Attendanc
                     ` · ${row.method === "qr" ? "scanned" : "ticked"}${row.at ? ` ${row.at}` : ""}`}
                 </span>
               </span>
-              {row.km != null && <span className="font-display text-lg font-bold">{row.km.toFixed(1)} km</span>}
             </button>
+            {/* Admin km override: add or fix this member's km, any time. */}
+            {row.method && (
+              <Link
+                href={`/admin/runs/${runId}/km/${row.id}`}
+                aria-label={row.km != null ? `Edit ${row.short}'s km` : `Add km for ${row.short}`}
+                className={`shrink-0 rounded-lg px-2.5 py-1.5 text-right ${
+                  row.km != null ? "font-display text-lg font-bold" : "border border-dashed border-navy/25 text-sm text-navy/60"
+                }`}
+              >
+                {row.km != null ? `${row.km.toFixed(1)} km` : "+ km"}
+              </Link>
+            )}
           </li>
         ))}
         {shown.length === 0 && <li className="py-3 text-navy/60">No members match “{query}”.</li>}

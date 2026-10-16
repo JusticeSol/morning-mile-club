@@ -6,22 +6,13 @@ import { createClient } from "@/lib/supabase/server";
 import { awardBadges } from "@/lib/badges";
 import { formatTime } from "@/lib/format";
 import { kmWindow } from "@/lib/km-window";
+import { parseKmForm } from "@/lib/km-input";
 import type { Run } from "@/lib/types";
+import type { KmFormState } from "@/components/km-form";
 
-export type LogState = { status: "idle" } | { status: "error"; message: string };
-
-export async function saveLog(runId: string, _prev: LogState, formData: FormData): Promise<LogState> {
-  const distance = Number(String(formData.get("distance_km") ?? "").replace(",", "."));
-  const hours = Number(formData.get("hours") || 0);
-  const minutes = Number(formData.get("minutes") || 0);
-
-  if (!Number.isFinite(distance) || distance < 0.1 || distance > 60) {
-    return { status: "error", message: "Distance must be between 0.1 and 60 km." };
-  }
-  if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours < 0 || minutes < 0 || minutes > 59) {
-    return { status: "error", message: "Time should be whole hours and minutes (0–59)." };
-  }
-  const durationSeconds = (hours * 60 + minutes) * 60;
+export async function saveLog(runId: string, _prev: KmFormState, formData: FormData): Promise<KmFormState> {
+  const parsed = parseKmForm(formData);
+  if (!parsed.ok) return { status: "error", message: parsed.error };
 
   const supabase = await createClient();
   const {
@@ -48,8 +39,8 @@ export async function saveLog(runId: string, _prev: LogState, formData: FormData
     {
       run_id: runId,
       member_id: user.id,
-      distance_km: Math.round(distance * 10) / 10,
-      duration_seconds: durationSeconds > 0 ? durationSeconds : null,
+      distance_km: parsed.km,
+      duration_seconds: parsed.seconds,
       logged_at: new Date().toISOString(),
     },
     { onConflict: "run_id,member_id" },
@@ -70,7 +61,7 @@ export async function saveLog(runId: string, _prev: LogState, formData: FormData
 
   await awardBadges(supabase, user.id, runId);
   // Land on the profile so members see the km added to their totals.
-  redirect(`/profile?saved=log&km=${Math.round(distance * 10) / 10}&run=${runId}`);
+  redirect(`/profile?saved=log&km=${parsed.km}&run=${runId}`);
 }
 
 export async function deleteLog(runId: string) {

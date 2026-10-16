@@ -36,6 +36,8 @@ that are newer than your setup, in date order, in the Supabase SQL Editor. Each 
 4. Runs complete automatically once check-in closes (8:20), which awards streaks and badges.
    **Mark completed** does it early. Rained off? **Cancel run**; it won't break anyone's streak.
 5. **WhatsApp reminder & recap** (on the run page): ready-made messages to edit, copy or share.
+6. **Forgot to log km?** Members log 8:20–10:45. After that, an admin taps the km box next to the
+   member on the tick-off list to add or fix it, any time.
 
 Members log km from the home page or the check-in screen, but only for a run they're checked
 in to (scanned or ticked).

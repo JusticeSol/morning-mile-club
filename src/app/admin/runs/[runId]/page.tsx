@@ -101,7 +101,7 @@ async function AdminRunBody({ params }: Pick<PageProps<"/admin/runs/[runId]">, "
       <Card>
         <h2 className="font-display text-xl font-bold uppercase">Tick-off list</h2>
         <p className="mb-3 text-sm text-navy/60">
-          Tap a name to mark them here (dead phone, no data, forgot to scan). QR check-ins show up automatically.
+          Tap a name to mark them here (dead phone, no data, forgot to scan). QR check-ins show up automatically. Tap the km on the right to add or fix someone&apos;s km, any time.
         </p>
         <AttendanceList runId={run.id} rows={rows} />
       </Card>

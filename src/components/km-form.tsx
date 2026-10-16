@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { buttonClass, inputClass, Message } from "@/components/ui";
-import { deleteLog, saveLog, type LogState } from "./actions";
+
+// The km stepper + optional time, shared by a member logging their own run
+// and an admin entering km for someone else. The caller passes the server
+// actions (already bound to the run / member) and the wording.
+export type KmFormState = { status: "idle" } | { status: "error"; message: string };
 
 const STEP = 0.5;
 const MIN = 0.1;
@@ -16,20 +20,26 @@ function parseKm(text: string) {
 }
 const clamp = (n: number) => Math.min(MAX, Math.max(MIN, Math.round(n * 10) / 10));
 
-export function LogForm({
-  runId,
+export function KmForm({
+  save,
+  remove,
   initialKm,
   initialSeconds,
   hasLog,
+  labels,
+  backHref,
+  backLabel,
 }: {
-  runId: string;
+  save: (prev: KmFormState, formData: FormData) => Promise<KmFormState>;
+  remove: () => Promise<void>;
   initialKm: number;
   initialSeconds: number | null;
   hasLog: boolean;
+  labels: { create: string; update: string; remove: string };
+  backHref: string;
+  backLabel: string;
 }) {
-  const [state, action, pending] = useActionState<LogState, FormData>(saveLog.bind(null, runId), {
-    status: "idle",
-  });
+  const [state, action, pending] = useActionState<KmFormState, FormData>(save, { status: "idle" });
   // Kept as text so members can type freely; the buttons nudge by 0.5.
   const [text, setText] = useState(initialKm.toFixed(1));
   const km = parseKm(text);
@@ -100,17 +110,17 @@ export function LogForm({
         {state.status === "error" && <Message tone="error">{state.message}</Message>}
 
         <button className={buttonClass} disabled={pending || !valid}>
-          {pending ? "Saving…" : hasLog ? "Update my run" : "Log my run"}
+          {pending ? "Saving…" : hasLog ? labels.update : labels.create}
         </button>
       </form>
 
       <div className="flex items-center justify-between text-sm">
-        <Link href="/" className="text-sunrise-ink underline">
-          Back to home
+        <Link href={backHref} className="text-sunrise-ink underline">
+          {backLabel}
         </Link>
         {hasLog && (
-          <form action={deleteLog.bind(null, runId)}>
-            <button className="text-navy/50 underline">Remove my log</button>
+          <form action={remove}>
+            <button className="text-navy/50 underline">{labels.remove}</button>
           </form>
         )}
       </div>

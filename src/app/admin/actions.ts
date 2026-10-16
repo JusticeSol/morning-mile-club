@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { awardBadges } from "@/lib/badges";
 import { lagosToday } from "@/lib/format";
 import type { RunStatus } from "@/lib/types";
+import { parseKmForm } from "@/lib/km-input";
+import type { KmFormState } from "@/components/km-form";
 
 // Server actions are public endpoints, so each one re-checks the caller.
 // RLS (is_admin()) enforces the same rule in the database.
@@ -124,4 +126,48 @@ export async function setGoal(_prev: { error?: string; saved?: boolean }, formDa
   }
   refresh();
   return { saved: true };
+}
+
+// Admin km override: add or fix a member's km at any time (forgot to log,
+// dead phone, a typo). Only for members checked in to the run.
+export async function adminSaveKm(
+  runId: string,
+  memberId: string,
+  _prev: KmFormState,
+  formData: FormData,
+): Promise<KmFormState> {
+  const parsed = parseKmForm(formData);
+  if (!parsed.ok) return { status: "error", message: parsed.error };
+
+  const { supabase } = await adminClient();
+  const { data: checkIn } = await supabase
+    .from("check_ins")
+    .select("id")
+    .eq("run_id", runId)
+    .eq("member_id", memberId)
+    .maybeSingle();
+  if (!checkIn) return { status: "error", message: "Tick them off as present first, then add their km." };
+
+  const { error } = await supabase.from("run_logs").upsert(
+    {
+      run_id: runId,
+      member_id: memberId,
+      distance_km: parsed.km,
+      duration_seconds: parsed.seconds,
+      logged_at: new Date().toISOString(),
+    },
+    { onConflict: "run_id,member_id" },
+  );
+  if (error) {
+    console.error("adminSaveKm", error);
+    return { status: "error", message: "Couldn't save the km. Please try again." };
+  }
+  await awardBadges(supabase, memberId, runId);
+  redirect(`/admin/runs/${runId}`);
+}
+
+export async function adminRemoveKm(runId: string, memberId: string) {
+  const { supabase } = await adminClient();
+  await supabase.from("run_logs").delete().eq("run_id", runId).eq("member_id", memberId);
+  redirect(`/admin/runs/${runId}`);
 }

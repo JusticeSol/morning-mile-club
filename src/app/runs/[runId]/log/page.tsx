@@ -6,7 +6,8 @@ import { formatDuration, formatRunDate, formatTime } from "@/lib/format";
 import { kmWindow } from "@/lib/km-window";
 import { RUN_COLUMNS, type Run, type RunLog } from "@/lib/types";
 import { isUuid } from "@/lib/uuid";
-import { LogForm } from "./log-form";
+import { KmForm } from "@/components/km-form";
+import { deleteLog, saveLog } from "./actions";
 
 export default function LogPage({ params }: PageProps<"/runs/[runId]/log">) {
   return (
@@ -74,11 +75,15 @@ async function LogBody({ params }: Pick<PageProps<"/runs/[runId]/log">, "params"
             {logged && <>{logged}Change it below if you need to. </>}
             Logging closes at {formatTime(km.closesAt)}.
           </Message>
-          <LogForm
-            runId={run.id}
+          <KmForm
+            save={saveLog.bind(null, run.id)}
+            remove={deleteLog.bind(null, run.id)}
             initialKm={Number(log?.distance_km ?? run.default_km)}
             initialSeconds={log?.duration_seconds ?? null}
             hasLog={!!log}
+            labels={{ create: "Log my run", update: "Update my run", remove: "Remove my log" }}
+            backHref="/"
+            backLabel="Back to home"
           />
         </>
       )}

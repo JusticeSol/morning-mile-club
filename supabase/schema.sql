@@ -477,6 +477,9 @@ create policy "own run_logs update" on run_logs for update to authenticated
   with check (member_id = auth.uid() and km_logging_open(run_id));
 create policy "own run_logs delete" on run_logs for delete to authenticated
   using (member_id = auth.uid() and km_logging_open(run_id));
+-- Admins can add or fix anyone's km at any time (forgot to log, typo).
+create policy "admin run_logs" on run_logs for all to authenticated
+  using (is_admin()) with check (is_admin());
 
 -- Strava: activities visible to the owner only. Tokens: no policies at all,
 -- so only the service role (your server / Strava webhook handler) can touch them.

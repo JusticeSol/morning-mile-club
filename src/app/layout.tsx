@@ -25,6 +25,9 @@ const permanentMarker = Permanent_Marker({
 export const metadata: Metadata = {
   title: "Morning Mile Club",
   description: "Let's run. Every Saturday from Gbagada General Hospital, 6:00 AM, ~12 km.",
+  applicationName: "Morning Mile Club",
+  // iPhone "Add to Home Screen": full-screen app with a dark status bar.
+  appleWebApp: { capable: true, title: "Morning Mile", statusBarStyle: "black" },
 };
 
 export const viewport: Viewport = {

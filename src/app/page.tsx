@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { buttonClass, Card, Screen } from "@/components/ui";
 import { GoalCard } from "@/components/goal-card";
+import { InstallPrompt } from "@/components/install-prompt";
 import { RouteCard } from "@/components/route-card";
 import { RsvpButton } from "@/components/rsvp-button";
 import { ShareCardButton } from "@/components/share-card-button";
@@ -71,6 +72,8 @@ async function HomeBody() {
       <p className="text-lg">
         Hi <strong>{memberName(profile)}</strong> 👋
       </p>
+
+      <InstallPrompt />
 
       {goal ? (
         <GoalCard goal={goal} />

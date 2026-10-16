@@ -52,6 +52,8 @@ Done: Next.js 16 scaffold (`cacheComponents` on, so request-time reads go inside
 - Share cards: `/share/[runId]/card` renders a 1080×1920 PNG (next/og, fonts in `assets/fonts`, traced via `outputFileTracingIncludes`). Own card only; club data only, never Strava.
 - Leaderboard has a pace-group filter (`?pace=easy|steady|fast`).
 - Km logging (decided 2026-10-13): members log their own km by hand, only for runs they checked in to, and only in a window from check-in close until 2 h 25 min later (08:20–10:45; times changed 2026-10-14). Enforced by `km_logging_open()` in RLS; `src/lib/km-window.ts` mirrors it for the UI. No automatic km for people who forget: it would put false figures on the board.
+- Admin km override (decided 2026-10-16): admins can add or fix any checked-in member's km at any time, from the tick-off list (`/admin/runs/[runId]/km/[memberId]`, RLS policy "admin run_logs"). The km form is shared: `src/components/km-form.tsx`.
+- Installable (PWA, 2026-10-16): `src/app/manifest.ts`, icons in `public/icons` + `src/app/icon.png` / `apple-icon.png` (MMC over a sunrise), "Add to home screen" card on the home page (`src/components/install-prompt.tsx`). No service worker / offline mode on purpose.
 
 ## Open decisions (remind Justice)
 Justice asked to be reminded about undecided items until a decision is made. Bring them up briefly at the start of a session and whenever related work comes up. Remove an item once it's decided. None open right now.
