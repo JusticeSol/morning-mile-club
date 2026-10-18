@@ -19,7 +19,7 @@ export function Screen({
 }) {
   return (
     <main className={`flex flex-1 flex-col ${nav ? "pb-20" : ""}`}>
-      <header className="bg-navy px-5 pt-10 pb-8 text-white">
+      <header className="bg-navy px-5 pt-[calc(env(safe-area-inset-top)+2.5rem)] pb-8 text-white">
         <div className="mx-auto max-w-md">
           {eyebrow && (
             <p className="text-sm font-medium uppercase tracking-widest text-sunrise">{eyebrow}</p>

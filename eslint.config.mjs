@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local promo/video work (gitignored), not part of the app.
+    "promo/**",
   ]),
 ]);
 

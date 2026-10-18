@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Morning Mile Club",
     short_name: "Morning Mile",
-    description: "Let's run. Every Saturday from Gbagada General Hospital, 6:00 AM.",
+    description: "Let's run. Every Saturday, 6 AM, Lagos.",
     start_url: "/",
     scope: "/",
     display: "standalone",

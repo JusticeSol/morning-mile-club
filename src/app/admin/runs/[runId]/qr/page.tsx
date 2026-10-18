@@ -15,7 +15,7 @@ import { KeepAwake } from "./keep-awake";
 // white and as large as the screen allows, so it scans in bright sunlight.
 export default function QrPage({ params }: PageProps<"/admin/runs/[runId]/qr">) {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center bg-white px-4 py-6 text-navy">
+    <main className="flex flex-1 flex-col items-center justify-center bg-white px-4 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-6 text-navy">
       <Suspense fallback={<p className="text-navy/60">Loading QR…</p>}>
         <QrBody params={params} />
       </Suspense>

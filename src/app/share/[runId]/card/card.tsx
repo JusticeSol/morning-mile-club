@@ -3,7 +3,8 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { formatDuration, formatRunDate } from "@/lib/format";
 
-// Draws the 9:16 WhatsApp-status card. Separate from the route so it can be
+// Draws the 9:16 WhatsApp-status card. Cards get posted publicly, so they
+// name the city only, never the meetup spot or route (Justice, 2026-10-18). Separate from the route so it can be
 // rendered with sample data while designing it.
 
 const W = 1080;
@@ -98,7 +99,7 @@ export async function cardImage(d: CardData) {
             marginTop: 60,
           }}
         >
-          Gbagada → Harvesters → Anthony → Maryland Mall → Gbagada
+          Saturday morning run · Lagos
         </div>
 
         <div style={{ display: "flex", gap: 24, marginTop: 70 }}>
@@ -137,7 +138,7 @@ export async function cardImage(d: CardData) {
         >
           <div style={{ fontFamily: "Barlow Condensed", fontSize: 72 }}>{d.name.toUpperCase()}</div>
           <div style={{ display: "flex", fontSize: 34, color: "white", opacity: 0.9 }}>
-            {(d.paceGroup ? `${capitalize(d.paceGroup)} group · ` : "") + "Every Saturday, Gbagada"}
+            {(d.paceGroup ? `${capitalize(d.paceGroup)} group · ` : "") + "Every Saturday, Lagos"}
           </div>
           <div
             style={{
@@ -149,7 +150,7 @@ export async function cardImage(d: CardData) {
               fontSize: 30,
             }}
           >
-            Join us: 6:00 AM, Gbagada General Hospital
+            Run with us: every Saturday, 6 AM
           </div>
         </div>
       </div>

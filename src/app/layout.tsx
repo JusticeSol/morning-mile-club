@@ -24,14 +24,17 @@ const permanentMarker = Permanent_Marker({
 
 export const metadata: Metadata = {
   title: "Morning Mile Club",
-  description: "Let's run. Every Saturday from Gbagada General Hospital, 6:00 AM, ~12 km.",
+  description: "Let's run. Every Saturday, 6 AM, Lagos. ~12 km with the Morning Mile Club.",
   applicationName: "Morning Mile Club",
-  // iPhone "Add to Home Screen": full-screen app with a dark status bar.
-  appleWebApp: { capable: true, title: "Morning Mile", statusBarStyle: "black" },
+  // iPhone "Add to Home Screen": the page runs under a see-through status
+  // bar (white clock on our navy header); headers pad by the safe area.
+  appleWebApp: { capable: true, title: "Morning Mile", statusBarStyle: "black-translucent" },
 };
 
 export const viewport: Viewport = {
   themeColor: "#101820",
+  // Lets env(safe-area-inset-*) report the notch / clock area on iPhones.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
