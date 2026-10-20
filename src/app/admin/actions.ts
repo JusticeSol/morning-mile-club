@@ -171,3 +171,37 @@ export async function adminRemoveKm(runId: string, memberId: string) {
   await supabase.from("run_logs").delete().eq("run_id", runId).eq("member_id", memberId);
   redirect(`/admin/runs/${runId}`);
 }
+
+// Announcements: shown on members' home pages (pinned ones until unpinned,
+// the rest for a week; see src/lib/announcements.ts).
+export async function postAnnouncement(_prev: { error?: string; posted?: boolean }, formData: FormData) {
+  const title = String(formData.get("title") ?? "").trim();
+  const body = String(formData.get("body") ?? "").trim();
+  const pinned = formData.get("pinned") === "on";
+
+  if (title.length < 2 || title.length > 80) return { error: "Give it a short headline (up to 80 characters)." };
+  if (body.length < 2 || body.length > 1000) return { error: "Write the message (up to 1,000 characters)." };
+
+  const { supabase, user } = await adminClient();
+  const { error } = await supabase.from("announcements").insert({ title, body, pinned, created_by: user.id });
+  if (error) {
+    console.error("postAnnouncement", error);
+    return { error: "Couldn't post it. Please try again." };
+  }
+  refresh();
+  return { posted: true };
+}
+
+export async function setAnnouncementPinned(id: string, pinned: boolean) {
+  const { supabase } = await adminClient();
+  const { error } = await supabase.from("announcements").update({ pinned }).eq("id", id);
+  if (error) console.error("setAnnouncementPinned", error);
+  refresh();
+}
+
+export async function deleteAnnouncement(id: string) {
+  const { supabase } = await adminClient();
+  const { error } = await supabase.from("announcements").delete().eq("id", id);
+  if (error) console.error("deleteAnnouncement", error);
+  refresh();
+}

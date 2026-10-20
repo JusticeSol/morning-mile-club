@@ -8,6 +8,10 @@ import { NewRunForm } from "./new-run-form";
 import { GoalForm } from "./goal-form";
 import { GoalCard } from "@/components/goal-card";
 import { currentMonth, getGoalProgress } from "@/lib/goal";
+import { getRecentAnnouncements, isLive } from "@/lib/announcements";
+import { formatPostedAt } from "@/lib/format";
+import { AnnouncementForm } from "./announcement-form";
+import { AnnouncementControls } from "./announcement-controls";
 
 type RecapRow = {
   run_id: string;
@@ -37,7 +41,7 @@ async function AdminBody() {
     .order("run_date", { ascending: false })
     .limit(20);
   const runs = data as RecapRow[] | null;
-  const goal = await getGoalProgress(supabase);
+  const [goal, announcements] = await Promise.all([getGoalProgress(supabase), getRecentAnnouncements(supabase)]);
 
   return (
     <div className="space-y-4">
@@ -53,6 +57,30 @@ async function AdminBody() {
           <GoalForm month={currentMonth().start.slice(0, 7)} name={goal?.name} targetKm={goal?.targetKm} />
         </Card>
       </section>
+
+      <Card>
+        <h2 id="announcements" className="mb-3 font-display text-xl font-bold uppercase">Announcement</h2>
+        <AnnouncementForm />
+        {announcements.length > 0 && (
+          <ul className="mt-5 divide-y divide-navy/10 border-t border-navy/10">
+            {announcements.map((a) => (
+              <li key={a.id} className="space-y-2 py-3">
+                <div>
+                  <p className="font-medium">
+                    {a.pinned && "📌 "}
+                    {a.title}
+                  </p>
+                  <p className="line-clamp-2 text-sm text-navy/70">{a.body}</p>
+                  <p className="text-xs text-navy/50">
+                    {formatPostedAt(a.created_at)} · {isLive(a) ? "on the home page" : "expired"}
+                  </p>
+                </div>
+                <AnnouncementControls id={a.id} pinned={a.pinned} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
 
       <Card>
         <h2 className="mb-1 font-display text-xl font-bold uppercase">All runs</h2>

@@ -46,3 +46,15 @@ export function formatDuration(seconds: number) {
 export function memberName(profile: { full_name: string; display_name: string | null }) {
   return profile.display_name || profile.full_name.split(" ")[0];
 }
+
+// Timestamp -> "Sat 18 Oct, 05:42" in Lagos time.
+export function formatPostedAt(timestamp: string) {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: TZ,
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(timestamp));
+}

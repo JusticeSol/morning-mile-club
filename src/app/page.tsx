@@ -1,12 +1,14 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { buttonClass, Card, Screen } from "@/components/ui";
+import { AnnouncementCard } from "@/components/announcement-card";
 import { GoalCard } from "@/components/goal-card";
 import { InstallPrompt } from "@/components/install-prompt";
 import { RouteCard } from "@/components/route-card";
 import { RsvpButton } from "@/components/rsvp-button";
 import { ShareCardButton } from "@/components/share-card-button";
 import { getGoalProgress } from "@/lib/goal";
+import { getHomeAnnouncements } from "@/lib/announcements";
 import { requireMember } from "@/lib/auth";
 import { formatClockTime, formatDuration, formatRunDate, formatTime, lagosToday, memberName } from "@/lib/format";
 import { kmWindow } from "@/lib/km-window";
@@ -46,8 +48,9 @@ async function HomeBody() {
       .maybeSingle<Run>(),
   ]);
 
-  const [goal, { data: rsvps }] = await Promise.all([
+  const [goal, announcements, { data: rsvps }] = await Promise.all([
     getGoalProgress(supabase),
+    getHomeAnnouncements(supabase),
     nextRun
       ? supabase.from("rsvps").select("member_id, profiles(full_name, display_name)").eq("run_id", nextRun.id)
       : Promise.resolve({ data: [] }),
@@ -72,6 +75,10 @@ async function HomeBody() {
       <p className="text-lg">
         Hi <strong>{memberName(profile)}</strong> 👋
       </p>
+
+      {announcements.map((a) => (
+        <AnnouncementCard key={a.id} announcement={a} />
+      ))}
 
       <InstallPrompt />
 
@@ -120,7 +127,7 @@ async function HomeBody() {
 
       {profile.role === "admin" && (
         <Link href="/admin" className="block text-sm font-medium text-sunrise-ink underline">
-          Admin: runs, QR code and tick-off list
+          Admin: runs, QR code, tick-off list and announcements
         </Link>
       )}
     </div>
