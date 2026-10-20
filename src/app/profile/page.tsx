@@ -79,7 +79,7 @@ async function ProfileBody({ searchParams }: Pick<PageProps<"/profile">, "search
 
       <Card>
         <div className="flex items-center gap-4">
-          <Avatar name={profile.display_name || profile.full_name} size="lg" me />
+          <Avatar name={profile.display_name || profile.full_name} src={profile.avatar_url} size="lg" me />
           <div className="min-w-0 flex-1">
             <p className="truncate font-display text-3xl font-bold uppercase leading-none">{memberName(profile)}</p>
             <p className="truncate text-navy/60">{profile.full_name}</p>

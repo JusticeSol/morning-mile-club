@@ -164,7 +164,7 @@ function Row({ rank, stats, value, me }: { rank: number; stats: MemberStats; val
       >
         {rank}
       </span>
-      <Avatar name={stats.display_name || stats.full_name} me={me} />
+      <Avatar name={stats.display_name || stats.full_name} src={stats.avatar_url} me={me} />
       <span className="min-w-0 flex-1">
         <span className="block truncate font-medium">
           {memberName(stats)}

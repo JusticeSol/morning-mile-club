@@ -45,6 +45,7 @@ export type MemberStats = {
   member_id: string;
   full_name: string;
   display_name: string | null;
+  avatar_url: string | null;
   pace_group: PaceGroup | null;
   saturdays_attended: number;
   total_km: number;
@@ -55,7 +56,7 @@ export type MemberStats = {
 };
 
 export const STATS_COLUMNS =
-  "member_id, full_name, display_name, pace_group, saturdays_attended, total_km, longest_run_km, current_streak, longest_streak, hide_from_leaderboard";
+  "member_id, full_name, display_name, avatar_url, pace_group, saturdays_attended, total_km, longest_run_km, current_streak, longest_streak, hide_from_leaderboard";
 
 export type Milestone = {
   id: string;

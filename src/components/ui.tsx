@@ -91,8 +91,18 @@ function BottomNav({ active }: { active?: Tab }) {
   );
 }
 
-// Initials avatar until photo upload exists.
-export function Avatar({ name, size = "md", me = false }: { name: string; size?: "md" | "lg"; me?: boolean }) {
+// Profile photo, or initials when there isn't one.
+export function Avatar({
+  name,
+  src,
+  size = "md",
+  me = false,
+}: {
+  name: string;
+  src?: string | null;
+  size?: "md" | "lg";
+  me?: boolean;
+}) {
   const initials = name
     .split(/\s+/)
     .filter(Boolean)
@@ -100,6 +110,12 @@ export function Avatar({ name, size = "md", me = false }: { name: string; size?:
     .map((w) => w[0]!.toUpperCase())
     .join("");
   const dims = size === "lg" ? "size-20 text-3xl" : "size-10 text-base";
+  if (src) {
+    // Photos are already 512×512 JPEGs (resized before upload), so a plain
+    // <img> is fine; no image optimisation needed.
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={src} alt="" loading="lazy" className={`shrink-0 rounded-full object-cover ${dims}`} />;
+  }
   return (
     <span
       aria-hidden
