@@ -9,6 +9,8 @@ import { RUN_COLUMNS, type PaceGroup, type Run } from "@/lib/types";
 import { isUuid } from "@/lib/uuid";
 import { AttendanceList, type AttendanceRow } from "./attendance-list";
 import { RunControls } from "./run-controls";
+import { RunPhotoUpload } from "./run-photo-upload";
+import { getRunPhoto } from "@/lib/run-photo";
 
 export default function AdminRunPage({ params }: PageProps<"/admin/runs/[runId]">) {
   return (
@@ -25,12 +27,13 @@ async function AdminRunBody({ params }: Pick<PageProps<"/admin/runs/[runId]">, "
   if (!isUuid(runId)) notFound();
   const { supabase } = await requireAdmin(`/admin/runs/${runId}`);
 
-  const [{ data: run }, { data: members }, { data: checkIns }, { data: logs }, { count: comingCount }] = await Promise.all([
+  const [{ data: run }, { data: members }, { data: checkIns }, { data: logs }, { count: comingCount }, photo] = await Promise.all([
     supabase.from("runs").select(RUN_COLUMNS).eq("id", runId).maybeSingle<Run>(),
     supabase.from("profiles").select("id, full_name, display_name, pace_group").order("full_name"),
     supabase.from("check_ins").select("member_id, method, checked_in_at").eq("run_id", runId),
     supabase.from("run_logs").select("member_id, distance_km").eq("run_id", runId),
     supabase.from("rsvps").select("run_id", { count: "exact", head: true }).eq("run_id", runId),
+    getRunPhoto(supabase, runId),
   ]);
   if (!run) notFound();
 
@@ -105,6 +108,16 @@ async function AdminRunBody({ params }: Pick<PageProps<"/admin/runs/[runId]">, "
         </p>
         <AttendanceList runId={run.id} rows={rows} />
       </Card>
+
+      {run.status !== "cancelled" && (
+        <Card>
+          <h2 className="font-display text-xl font-bold uppercase">Photo of the week</h2>
+          <p className="mb-3 text-sm text-navy/60">
+            Post the Maryland Mall group photo. It shows on everyone&apos;s home page for two weeks.
+          </p>
+          <RunPhotoUpload runId={run.id} current={photo && { url: photo.url, caption: photo.caption }} />
+        </Card>
+      )}
 
       <Link href="/admin" className="block text-sm text-sunrise-ink underline">
         All runs

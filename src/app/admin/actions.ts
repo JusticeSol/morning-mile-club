@@ -8,6 +8,7 @@ import { lagosToday } from "@/lib/format";
 import type { RunStatus } from "@/lib/types";
 import { parseKmForm } from "@/lib/km-input";
 import type { KmFormState } from "@/components/km-form";
+import { RUN_PHOTOS } from "@/lib/run-photo";
 
 // Server actions are public endpoints, so each one re-checks the caller.
 // RLS (is_admin()) enforces the same rule in the database.
@@ -204,4 +205,63 @@ export async function deleteAnnouncement(id: string) {
   const { error } = await supabase.from("announcements").delete().eq("id", id);
   if (error) console.error("deleteAnnouncement", error);
   refresh();
+}
+
+// Photo of the week: one group photo per run. Posting a new one replaces
+// the old (row and file). Without a new photo, just updates the caption.
+export async function postRunPhoto(runId: string, formData: FormData): Promise<{ error?: string }> {
+  const photo = formData.get("photo");
+  const caption = String(formData.get("caption") ?? "").trim().slice(0, 140) || null;
+  const { supabase, user } = await adminClient();
+  const bucket = supabase.storage.from(RUN_PHOTOS);
+  const { data: existing } = await supabase.from("run_photos").select("id, storage_path").eq("run_id", runId);
+
+  if (!(photo instanceof File)) {
+    if (!existing?.length) return { error: "Choose a photo first." };
+    const { error } = await supabase.from("run_photos").update({ caption }).eq("run_id", runId);
+    if (error) {
+      console.error("postRunPhoto caption", error);
+      return { error: "Couldn't save the caption. Please try again." };
+    }
+    refresh();
+    return {};
+  }
+
+  if (photo.type !== "image/jpeg" || photo.size === 0 || photo.size > 1_000_000) {
+    return { error: "That photo didn't work. Try a different one." };
+  }
+  const path = `${runId}/${Date.now()}.jpg`;
+  const { error: uploadError } = await bucket.upload(path, photo, { contentType: "image/jpeg", cacheControl: "31536000" });
+  if (uploadError) {
+    console.error("postRunPhoto upload", uploadError);
+    return { error: "Couldn't upload the photo. Please try again." };
+  }
+  const { error } = await supabase
+    .from("run_photos")
+    .insert({ run_id: runId, uploaded_by: user.id, storage_path: path, caption });
+  if (error) {
+    console.error("postRunPhoto insert", error);
+    await bucket.remove([path]);
+    return { error: "Couldn't save the photo. Please try again." };
+  }
+  if (existing?.length) {
+    await supabase.from("run_photos").delete().in("id", existing.map((p) => p.id));
+    await bucket.remove(existing.map((p) => p.storage_path));
+  }
+  refresh();
+  return {};
+}
+
+export async function removeRunPhoto(runId: string): Promise<{ error?: string }> {
+  const { supabase } = await adminClient();
+  const { data: existing } = await supabase.from("run_photos").select("id, storage_path").eq("run_id", runId);
+  if (!existing?.length) return {};
+  const { error } = await supabase.from("run_photos").delete().eq("run_id", runId);
+  if (error) {
+    console.error("removeRunPhoto", error);
+    return { error: "Couldn't remove the photo. Please try again." };
+  }
+  await supabase.storage.from(RUN_PHOTOS).remove(existing.map((p) => p.storage_path));
+  refresh();
+  return {};
 }

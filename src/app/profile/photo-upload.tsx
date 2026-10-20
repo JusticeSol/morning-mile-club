@@ -2,25 +2,8 @@
 
 import { useRef, useState, useTransition } from "react";
 import { Avatar, Message } from "@/components/ui";
+import { squareJpeg } from "@/lib/resize-image";
 import { removePhoto, uploadPhoto } from "./actions";
-
-const SIZE = 512;
-
-// Crops the photo to a centred square and shrinks it to a 512×512 JPEG in the
-// browser, so a 5 MB phone photo uploads as ~100 KB.
-async function toSquareJpeg(file: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
-  const side = Math.min(bitmap.width, bitmap.height);
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = SIZE;
-  canvas
-    .getContext("2d")!
-    .drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, SIZE, SIZE);
-  bitmap.close();
-  return new Promise((resolve, reject) =>
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("toBlob failed"))), "image/jpeg", 0.85),
-  );
-}
 
 export function PhotoUpload({ name, src }: { name: string; src: string | null }) {
   const input = useRef<HTMLInputElement>(null);
@@ -34,7 +17,7 @@ export function PhotoUpload({ name, src }: { name: string; src: string | null })
     startTransition(async () => {
       let jpeg: Blob;
       try {
-        jpeg = await toSquareJpeg(file);
+        jpeg = await squareJpeg(file);
       } catch {
         setError("Couldn't read that photo. Try a JPEG or PNG.");
         return;

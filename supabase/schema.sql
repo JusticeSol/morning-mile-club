@@ -491,10 +491,10 @@ create policy "own strava activities" on strava_activities
 -- Badges: everyone reads; only award_milestones() writes.
 create policy "read member_milestones" on member_milestones for select to authenticated using (true);
 
--- Photos: everyone reads; upload your own; delete your own or as admin.
+-- Photos (photo of the week): everyone reads; admins post, edit, delete.
 create policy "read photos" on run_photos for select to authenticated using (true);
-create policy "upload own photos" on run_photos for insert to authenticated with check (uploaded_by = auth.uid());
 create policy "delete own photos" on run_photos for delete to authenticated using (uploaded_by = auth.uid() or is_admin());
+create policy "admin photos" on run_photos for all to authenticated using (is_admin()) with check (is_admin());
 
 alter table club_goals enable row level security;
 alter table rsvps      enable row level security;
@@ -536,3 +536,20 @@ create policy "avatars upload own" on storage.objects for insert to authenticate
 drop policy if exists "avatars delete own" on storage.objects;
 create policy "avatars delete own" on storage.objects for delete to authenticated
   using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- Storage: photo of the week (same as migrations/20261020c_photo_of_the_week.sql).
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('run-photos', 'run-photos', true, 1048576, array['image/jpeg'])
+on conflict (id) do update
+  set public = excluded.public,
+      file_size_limit = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
+
+create policy "run photos admin read" on storage.objects for select to authenticated
+  using (bucket_id = 'run-photos' and is_admin());
+
+create policy "run photos admin upload" on storage.objects for insert to authenticated
+  with check (bucket_id = 'run-photos' and is_admin());
+
+create policy "run photos admin delete" on storage.objects for delete to authenticated
+  using (bucket_id = 'run-photos' and is_admin());

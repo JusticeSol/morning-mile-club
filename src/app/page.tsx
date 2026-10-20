@@ -4,11 +4,13 @@ import { buttonClass, Card, Screen } from "@/components/ui";
 import { AnnouncementCard } from "@/components/announcement-card";
 import { GoalCard } from "@/components/goal-card";
 import { InstallPrompt } from "@/components/install-prompt";
+import { PhotoOfTheWeek } from "@/components/photo-of-the-week";
 import { RouteCard } from "@/components/route-card";
 import { RsvpButton } from "@/components/rsvp-button";
 import { ShareCardButton } from "@/components/share-card-button";
 import { getGoalProgress } from "@/lib/goal";
 import { getHomeAnnouncements } from "@/lib/announcements";
+import { getPhotoOfTheWeek } from "@/lib/run-photo";
 import { requireMember } from "@/lib/auth";
 import { formatClockTime, formatDuration, formatRunDate, formatTime, lagosToday, memberName } from "@/lib/format";
 import { kmWindow } from "@/lib/km-window";
@@ -48,9 +50,10 @@ async function HomeBody() {
       .maybeSingle<Run>(),
   ]);
 
-  const [goal, announcements, { data: rsvps }] = await Promise.all([
+  const [goal, announcements, photo, { data: rsvps }] = await Promise.all([
     getGoalProgress(supabase),
     getHomeAnnouncements(supabase),
+    getPhotoOfTheWeek(supabase),
     nextRun
       ? supabase.from("rsvps").select("member_id, profiles(full_name, display_name)").eq("run_id", nextRun.id)
       : Promise.resolve({ data: [] }),
@@ -100,6 +103,8 @@ async function HomeBody() {
           log={log as { distance_km: number; duration_seconds: number | null } | null}
         />
       )}
+
+      {photo && <PhotoOfTheWeek photo={photo} />}
 
       <Card>
         <p className="text-sm font-medium uppercase tracking-widest text-sunrise-ink">Next run</p>

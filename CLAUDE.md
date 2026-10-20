@@ -56,10 +56,11 @@ Done: Next.js 16 scaffold (`cacheComponents` on, so request-time reads go inside
 - Announcements (2026-10-20): admins post a headline + message on /admin (optionally pinned); members see them as banners at the top of the home page. Pinned ones stay until unpinned, others show for 7 days (`src/lib/announcements.ts`). Uses the existing `announcements` table, no migration.
 - "Hide me from the leaderboard" (2026-10-20): switch on the Profile page (`profiles.hide_from_leaderboard`, also exposed on `member_stats`). Hidden members are left out of the leaderboard (they still see their own position, privately) and the WhatsApp recap's streak shout-outs; their runs still count for streaks, badges and the club goal. Admins still see them on the tick-off list.
 - Profile photos (2026-10-20): Profile → Edit profile → "Add a photo". The browser crops/shrinks to a 512×512 JPEG (`src/app/profile/photo-upload.tsx`), a server action uploads it to the public-read `avatars` Storage bucket under `<user id>/` and sets `profiles.avatar_url`; old files are deleted. `Avatar` in `ui.tsx` shows the photo or initials (leaderboard, profile).
+- Photo of the week (2026-10-20): admins post one group photo per run (+ optional caption) on `/admin/runs/[runId]`; posting again replaces it. Shown on the home page for 14 days after the run (`src/lib/run-photo.ts`). Resized in the browser to ≤1600px JPEG (`src/lib/resize-image.ts`), stored in the public-read `run-photos` bucket; only admins can write (`run_photos` "admin photos" policy).
 - Installable (PWA, 2026-10-16): `src/app/manifest.ts`, icons in `public/icons` + `src/app/icon.png` / `apple-icon.png` (MMC over a sunrise), "Add to home screen" card on the home page (`src/components/install-prompt.tsx`). No service worker / offline mode on purpose.
 
 ## Open decisions (remind Justice)
 Justice asked to be reminded about undecided items until a decision is made. Bring them up briefly at the start of a session and whenever related work comes up. Remove an item once it's decided. None open right now.
 
 ## Next step
-After a few real Saturdays: Maryland Mall photo of the week (reuse the photo-upload approach; `run_photos` table exists).
+Ideas for later: members adding their own run photos (photo wall), photo on the share card.
