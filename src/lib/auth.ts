@@ -35,7 +35,7 @@ export async function requireMember(next: string) {
   const [{ data: profile }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, full_name, display_name, avatar_url, pace_group, role")
+      .select("id, full_name, display_name, avatar_url, pace_group, role, hide_from_leaderboard")
       .eq("id", user.id)
       .maybeSingle<Profile>(),
     completePastRuns(supabase),

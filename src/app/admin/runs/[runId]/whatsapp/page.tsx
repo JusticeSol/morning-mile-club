@@ -59,6 +59,7 @@ async function WhatsAppBody({ params }: Pick<PageProps<"/admin/runs/[runId]/what
               .from("member_stats")
               .select("member_id, current_streak")
               .in("member_id", ids)
+              .eq("hide_from_leaderboard", false)
               .gte("current_streak", 2)
               .order("current_streak", { ascending: false })
               .limit(5)

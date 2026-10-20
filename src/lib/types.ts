@@ -12,6 +12,7 @@ export type Profile = {
   avatar_url: string | null;
   pace_group: PaceGroup | null;
   role: "member" | "admin";
+  hide_from_leaderboard: boolean;
 };
 
 export type Run = {
@@ -50,10 +51,11 @@ export type MemberStats = {
   longest_run_km: number | null;
   current_streak: number;
   longest_streak: number;
+  hide_from_leaderboard: boolean;
 };
 
 export const STATS_COLUMNS =
-  "member_id, full_name, display_name, pace_group, saturdays_attended, total_km, longest_run_km, current_streak, longest_streak";
+  "member_id, full_name, display_name, pace_group, saturdays_attended, total_km, longest_run_km, current_streak, longest_streak, hide_from_leaderboard";
 
 export type Milestone = {
   id: string;

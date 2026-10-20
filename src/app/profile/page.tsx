@@ -9,6 +9,7 @@ import { isUuid } from "@/lib/uuid";
 import { ShareCardButton } from "@/components/share-card-button";
 import { STATS_COLUMNS, type MemberStats, type Milestone, type RunStatus } from "@/lib/types";
 import { signOut } from "../actions";
+import { LeaderboardToggle } from "./leaderboard-toggle";
 
 export default function ProfilePage({ searchParams }: PageProps<"/profile">) {
   return (
@@ -140,6 +141,8 @@ async function ProfileBody({ searchParams }: Pick<PageProps<"/profile">, "search
           })}
         </ul>
       </Card>
+
+      <LeaderboardToggle hidden={profile.hide_from_leaderboard} />
 
       <Card>
         <h2 className="mb-1 font-display text-xl font-bold uppercase">Recent runs</h2>

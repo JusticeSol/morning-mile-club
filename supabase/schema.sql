@@ -26,6 +26,7 @@ create table profiles (
   pace_group    pace_group default 'steady',
   role          member_role not null default 'member',
   bio           text,
+  hide_from_leaderboard boolean not null default false, -- still counts in club totals
   joined_at     timestamptz not null default now()
 );
 
@@ -258,7 +259,8 @@ select p.id as member_id,
        (select max(l.distance_km) from run_logs l
          where l.member_id = p.id)                         as longest_run_km,
        s.current_streak,
-       s.longest_streak
+       s.longest_streak,
+       p.hide_from_leaderboard
 from profiles p
 join member_streaks s on s.member_id = p.id;
 

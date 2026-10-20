@@ -57,11 +57,17 @@ async function LeaderboardBody({ searchParams }: Pick<PageProps<"/leaderboard">,
   const { value, show, empty } = BOARDS[board];
 
   const { data } = await supabase.from("member_stats").select(STATS_COLUMNS);
+  const onBoard = ((data ?? []) as MemberStats[]).filter((s) => value(s) > 0 && (!pace || s.pace_group === pace));
+  // Members who chose "hide me" are left out. If that's you, you still see
+  // where you'd be, privately, below the list.
   const ranked = rank(
-    ((data ?? []) as MemberStats[]).filter((s) => value(s) > 0 && (!pace || s.pace_group === pace)),
+    onBoard.filter((s) => !s.hide_from_leaderboard),
     value,
   );
-  const mine = ranked.find((r) => r.stats.member_id === user.id);
+  const hiddenMe = onBoard.find((s) => s.member_id === user.id && s.hide_from_leaderboard);
+  const mine = hiddenMe
+    ? rank([...ranked.map((r) => r.stats), hiddenMe], value).find((r) => r.stats.member_id === user.id)
+    : ranked.find((r) => r.stats.member_id === user.id);
   const top = ranked.slice(0, TOP);
 
   return (
@@ -109,15 +115,28 @@ async function LeaderboardBody({ searchParams }: Pick<PageProps<"/leaderboard">,
         )}
       </Card>
 
-      {/* Keep your own position in view when you're outside the top list. */}
-      {mine && mine.rank > TOP && (
+      {/* Keep your own position in view when you're hidden or outside the top list. */}
+      {mine && hiddenMe && (
+        <Card>
+          <ol>
+            <Row rank={mine.rank} stats={mine.stats} value={show(mine.stats)} me />
+          </ol>
+          <p className="mt-2 text-sm text-navy/60">
+            You&apos;re hidden from the leaderboard, so only you see this.{" "}
+            <Link href="/profile#leaderboard" className="text-sunrise-ink underline">
+              Change
+            </Link>
+          </p>
+        </Card>
+      )}
+      {mine && !hiddenMe && mine.rank > TOP && (
         <Card>
           <ol>
             <Row rank={mine.rank} stats={mine.stats} value={show(mine.stats)} me />
           </ol>
         </Card>
       )}
-      {!mine && top.length > 0 && (!pace || pace === profile.pace_group) && (
+      {!mine && top.length > 0 && !profile.hide_from_leaderboard && (!pace || pace === profile.pace_group) && (
         <p className="text-center text-sm text-navy/60">You&apos;re not on this board yet. See you Saturday!</p>
       )}
       <p className="text-center text-xs text-navy/50">

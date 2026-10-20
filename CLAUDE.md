@@ -54,10 +54,11 @@ Done: Next.js 16 scaffold (`cacheComponents` on, so request-time reads go inside
 - Km logging (decided 2026-10-13): members log their own km by hand, only for runs they checked in to, and only in a window from check-in close until 2 h 25 min later (08:20–10:45; times changed 2026-10-14). Enforced by `km_logging_open()` in RLS; `src/lib/km-window.ts` mirrors it for the UI. No automatic km for people who forget: it would put false figures on the board.
 - Admin km override (decided 2026-10-16): admins can add or fix any checked-in member's km at any time, from the tick-off list (`/admin/runs/[runId]/km/[memberId]`, RLS policy "admin run_logs"). The km form is shared: `src/components/km-form.tsx`.
 - Announcements (2026-10-20): admins post a headline + message on /admin (optionally pinned); members see them as banners at the top of the home page. Pinned ones stay until unpinned, others show for 7 days (`src/lib/announcements.ts`). Uses the existing `announcements` table, no migration.
+- "Hide me from the leaderboard" (2026-10-20): switch on the Profile page (`profiles.hide_from_leaderboard`, also exposed on `member_stats`). Hidden members are left out of the leaderboard (they still see their own position, privately) and the WhatsApp recap's streak shout-outs; their runs still count for streaks, badges and the club goal. Admins still see them on the tick-off list.
 - Installable (PWA, 2026-10-16): `src/app/manifest.ts`, icons in `public/icons` + `src/app/icon.png` / `apple-icon.png` (MMC over a sunrise), "Add to home screen" card on the home page (`src/components/install-prompt.tsx`). No service worker / offline mode on purpose.
 
 ## Open decisions (remind Justice)
 Justice asked to be reminded about undecided items until a decision is made. Bring them up briefly at the start of a session and whenever related work comes up. Remove an item once it's decided. None open right now.
 
 ## Next step
-After a few real Saturdays: "hide me from the leaderboard" option (next, agreed 2026-10-20), profile photos (Supabase Storage), Maryland Mall photo of the week.
+After a few real Saturdays: profile photos (Supabase Storage), Maryland Mall photo of the week.
