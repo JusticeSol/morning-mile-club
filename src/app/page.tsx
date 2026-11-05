@@ -4,7 +4,6 @@ import { buttonClass, Card, Screen } from "@/components/ui";
 import { AnnouncementCard } from "@/components/announcement-card";
 import { GoalCard } from "@/components/goal-card";
 import { InstallPrompt } from "@/components/install-prompt";
-import { InstagramLink } from "@/components/instagram-link";
 import { PhotoOfTheWeek } from "@/components/photo-of-the-week";
 import { RouteCard } from "@/components/route-card";
 import { RsvpButton } from "@/components/rsvp-button";
@@ -136,10 +135,6 @@ async function HomeBody() {
           Admin: runs, QR code, tick-off list and announcements
         </Link>
       )}
-
-      <p className="pt-2 text-center text-sm text-navy/60">
-        Photos from every Saturday: <InstagramLink className="ml-1" />
-      </p>
     </div>
   );
 }
