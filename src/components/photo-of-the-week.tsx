@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui";
+import { InstagramLink } from "@/components/instagram-link";
 import { formatRunDate } from "@/lib/format";
 import type { RunPhoto } from "@/lib/run-photo";
 
@@ -16,6 +17,7 @@ export function PhotoOfTheWeek({ photo }: { photo: RunPhoto }) {
         <img src={photo.url} alt={photo.caption ?? "Group photo"} loading="lazy" className="-mx-1 w-[calc(100%+0.5rem)] rounded-xl" />
       </a>
       {photo.caption && <p className="mt-3 font-medium">{photo.caption}</p>}
+      <InstagramLink label="More photos on Instagram →" className="mt-3 text-sm" />
     </Card>
   );
 }

@@ -9,6 +9,7 @@ import { isUuid } from "@/lib/uuid";
 import { ShareCardButton } from "@/components/share-card-button";
 import { STATS_COLUMNS, type MemberStats, type Milestone, type RunStatus } from "@/lib/types";
 import { signOut } from "../actions";
+import { InstagramLink } from "@/components/instagram-link";
 import { LeaderboardToggle } from "./leaderboard-toggle";
 
 export default function ProfilePage({ searchParams }: PageProps<"/profile">) {
@@ -191,6 +192,10 @@ async function ProfileBody({ searchParams }: Pick<PageProps<"/profile">, "search
           </ul>
         )}
       </Card>
+
+      <p className="text-center text-sm">
+        <InstagramLink />
+      </p>
 
       <div className="flex items-center justify-between text-sm">
         {profile.role === "admin" ? (

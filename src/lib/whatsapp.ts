@@ -2,6 +2,7 @@
 // Plain text with emoji; *bold* is WhatsApp's own formatting.
 
 import { saturdayRoute } from "@/lib/route";
+import { INSTAGRAM_URL } from "@/lib/social";
 
 export function buildReminder({
   title,
@@ -77,6 +78,7 @@ export function buildRecap(r: RecapInput) {
   } else {
     lines.push(`🏆 See the leaderboard: ${r.site}/leaderboard`);
   }
+  lines.push(`📷 Today's photos: ${INSTAGRAM_URL}`);
   lines.push(``, `See you next Saturday at Gbagada General Hospital, 6:00 AM! 🌅`);
   return lines.join("\n");
 }
