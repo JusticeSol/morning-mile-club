@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Image from "next/image";
 import { Card, Message, Screen } from "@/components/ui";
 import { safeNext } from "@/lib/auth";
 import { LoginForm } from "./login-form";
@@ -6,6 +7,14 @@ import { LoginForm } from "./login-form";
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <Screen eyebrow="Morning Mile Club" title="Log in">
+      <Image
+        src="/brand/logo.png"
+        alt="The Morning Mile Club: beyond the finish line"
+        width={240}
+        height={240}
+        priority
+        className="mx-auto mb-6 rounded-3xl bg-navy p-2 shadow-sm"
+      />
       <Card>
         <Suspense>
           <LoginBody searchParams={searchParams} />

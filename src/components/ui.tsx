@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import type { RunStatus } from "@/lib/types";
 
@@ -20,11 +21,17 @@ export function Screen({
   return (
     <main className={`flex flex-1 flex-col ${nav ? "pb-20" : ""}`}>
       <header className="bg-navy px-5 pt-[calc(env(safe-area-inset-top)+2.5rem)] pb-8 text-white">
-        <div className="mx-auto max-w-md">
-          {eyebrow && (
-            <p className="text-sm font-medium uppercase tracking-widest text-sunrise">{eyebrow}</p>
-          )}
-          <h1 className="font-hand text-4xl uppercase leading-tight">{title}</h1>
+        <div className="mx-auto flex max-w-md items-center justify-between gap-4">
+          <div className="min-w-0">
+            {eyebrow && (
+              <p className="text-sm font-medium uppercase tracking-widest text-sunrise">{eyebrow}</p>
+            )}
+            <h1 className="font-hand text-4xl uppercase leading-tight">{title}</h1>
+          </div>
+          {/* Club logo (transparent PNG). */}
+          <Link href="/" aria-label="Morning Mile Club home" className="shrink-0">
+            <Image src="/brand/mark.png" alt="" width={72} height={72} priority />
+          </Link>
         </div>
       </header>
       <div className="mx-auto w-full max-w-md flex-1 px-5 py-6">{children}</div>
