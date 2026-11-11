@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Card, Message, Screen } from "@/components/ui";
 import { safeNext } from "@/lib/auth";
 import { LoginForm } from "./login-form";
@@ -20,6 +21,12 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
           <LoginBody searchParams={searchParams} />
         </Suspense>
       </Card>
+      <p className="mt-4 text-center text-sm text-navy/60">
+        What we store and why:{" "}
+        <Link href="/privacy" className="font-medium text-sunrise-ink underline">
+          Privacy
+        </Link>
+      </p>
     </Screen>
   );
 }

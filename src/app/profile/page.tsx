@@ -193,8 +193,11 @@ async function ProfileBody({ searchParams }: Pick<PageProps<"/profile">, "search
         )}
       </Card>
 
-      <p className="text-center text-sm">
+      <p className="flex items-center justify-center gap-4 text-center text-sm">
         <InstagramLink />
+        <Link href="/privacy" className="text-navy/60 underline">
+          Privacy
+        </Link>
       </p>
 
       <div className="flex items-center justify-between text-sm">
