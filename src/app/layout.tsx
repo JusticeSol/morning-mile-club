@@ -22,10 +22,17 @@ const permanentMarker = Permanent_Marker({
   weight: "400",
 });
 
+const description = "Let's run. Every Saturday, 6 AM, Lagos. ~12 km with the Morning Mile Club.";
+
 export const metadata: Metadata = {
+  // Absolute base for link previews (opengraph-image.jpg in this folder).
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://morning-mile-club.vercel.app"),
   title: "Morning Mile Club",
-  description: "Let's run. Every Saturday, 6 AM, Lagos. ~12 km with the Morning Mile Club.",
+  description,
   applicationName: "Morning Mile Club",
+  // WhatsApp, X and others read these for the link preview card.
+  openGraph: { type: "website", siteName: "Morning Mile Club", title: "Morning Mile Club", description, locale: "en_NG" },
+  twitter: { card: "summary_large_image" },
   // iPhone "Add to Home Screen": the page runs under a see-through status
   // bar (white clock on our navy header); headers pad by the safe area.
   appleWebApp: { capable: true, title: "Morning Mile", statusBarStyle: "black-translucent" },

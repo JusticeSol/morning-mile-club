@@ -10,10 +10,10 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
       <Image
         src="/brand/logo.png"
         alt="The Morning Mile Club: beyond the finish line"
-        width={240}
-        height={240}
+        width={160}
+        height={160}
         priority
-        className="mx-auto mb-6 rounded-3xl bg-navy p-2 shadow-sm"
+        className="mx-auto mb-4 rounded-3xl bg-navy p-1.5 shadow-sm"
       />
       <Card>
         <Suspense>
